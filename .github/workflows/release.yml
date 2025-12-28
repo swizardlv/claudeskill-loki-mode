@@ -35,28 +35,45 @@ jobs:
             echo "exists=false" >> $GITHUB_OUTPUT
           fi
 
-      - name: Create release artifact
+      - name: Create release artifacts
         if: steps.check_tag.outputs.exists == 'false'
         run: |
-          # Create skill directory with the name Claude Code expects
-          mkdir -p release/loki-mode
+          mkdir -p release
 
-          # Copy only the skill files (not .git, release folder, or GitHub workflows)
+          # ============================================
+          # Artifact 1: loki-mode.zip (for Claude.ai)
+          # SKILL.md at ROOT level for direct upload
+          # ============================================
+          mkdir -p release/skill-root
+          cp SKILL.md release/skill-root/
+          cp -r references release/skill-root/
+
+          cd release/skill-root
+          zip -r ../loki-mode-${{ steps.version.outputs.version }}.zip .
+          cd ../..
+
+          # Also create .skill file (same as zip, different extension)
+          cp release/loki-mode-${{ steps.version.outputs.version }}.zip release/loki-mode-${{ steps.version.outputs.version }}.skill
+
+          # ============================================
+          # Artifact 2: loki-mode-claude-code.zip
+          # For Claude Code: contains loki-mode/ folder
+          # Extract to ~/.claude/skills/
+          # ============================================
+          mkdir -p release/loki-mode
           cp SKILL.md release/loki-mode/
           cp README.md release/loki-mode/
-          cp LICENSE release/loki-mode/
+          cp LICENSE release/loki-mode/ 2>/dev/null || true
           cp VERSION release/loki-mode/
           cp CHANGELOG.md release/loki-mode/
           cp -r references release/loki-mode/
           cp -r examples release/loki-mode/
           cp -r tests release/loki-mode/
 
-          # Create zip file (loki-mode/ folder inside)
           cd release
-          zip -r loki-mode-${{ steps.version.outputs.version }}.zip loki-mode
-
-          # Create tarball
-          tar -czvf loki-mode-${{ steps.version.outputs.version }}.tar.gz loki-mode
+          zip -r loki-mode-claude-code-${{ steps.version.outputs.version }}.zip loki-mode
+          tar -czvf loki-mode-claude-code-${{ steps.version.outputs.version }}.tar.gz loki-mode
+          cd ..
 
       - name: Create Git Tag
         if: steps.check_tag.outputs.exists == 'false'
@@ -70,18 +87,11 @@ jobs:
         if: steps.check_tag.outputs.exists == 'false'
         id: changelog
         run: |
-          # Extract the changelog section for this version
           VERSION="${{ steps.version.outputs.version }}"
-
-          # Get content between this version header and the next version header
           CHANGELOG=$(awk "/^## \[$VERSION\]/{flag=1; next} /^## \[/{flag=0} flag" CHANGELOG.md)
-
-          # If empty, provide default message
           if [ -z "$CHANGELOG" ]; then
             CHANGELOG="Release v$VERSION"
           fi
-
-          # Write to file for multi-line output
           echo "$CHANGELOG" > changelog_body.txt
 
       - name: Create GitHub Release
@@ -93,7 +103,9 @@ jobs:
           body_path: changelog_body.txt
           files: |
             release/loki-mode-${{ steps.version.outputs.version }}.zip
-            release/loki-mode-${{ steps.version.outputs.version }}.tar.gz
+            release/loki-mode-${{ steps.version.outputs.version }}.skill
+            release/loki-mode-claude-code-${{ steps.version.outputs.version }}.zip
+            release/loki-mode-claude-code-${{ steps.version.outputs.version }}.tar.gz
           draft: false
           prerelease: false
         env:

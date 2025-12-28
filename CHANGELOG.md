@@ -5,6 +5,17 @@ All notable changes to Loki Mode will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.3] - 2025-12-27
+
+### Fixed
+- **Proper Skill File Format** - Release artifacts now follow Claude's expected format:
+  - `loki-mode-X.X.X.zip` / `.skill` - For Claude.ai (SKILL.md at root)
+  - `loki-mode-claude-code-X.X.X.zip` - For Claude Code (loki-mode/ folder)
+
+### Improved
+- **Installation Instructions** - Separate instructions for Claude.ai vs Claude Code
+- **SKILL.md** - Already has required YAML frontmatter with `name` and `description`
+
 ## [2.0.2] - 2025-12-27
 
 ### Fixed
@@ -129,6 +140,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `references/deployment.md` - Cloud deployment guides
   - `references/business-ops.md` - Business operation workflows
 
+[2.0.3]: https://github.com/asklokesh/claudeskill-loki-mode/compare/v2.0.2...v2.0.3
 [2.0.2]: https://github.com/asklokesh/claudeskill-loki-mode/compare/v2.0.1...v2.0.2
 [2.0.1]: https://github.com/asklokesh/claudeskill-loki-mode/compare/v2.0.0...v2.0.1
 [2.0.0]: https://github.com/asklokesh/claudeskill-loki-mode/compare/v1.1.0...v2.0.0

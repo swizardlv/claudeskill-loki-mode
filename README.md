@@ -58,43 +58,35 @@ PRD → Competitive Research → Architecture → Development → Testing → De
 
 ### Skill File Structure
 
-The skill consists of these key files:
-
 ```
-claudeskill-loki-mode/
-├── SKILL.md              # ← THE SKILL (required) - Claude Code reads this
-├── references/
-│   ├── agents.md         # Agent definitions (referenced by skill)
-│   ├── deployment.md     # Deployment guides (referenced by skill)
-│   └── business-ops.md   # Business workflows (referenced by skill)
-├── examples/             # Test PRDs (optional)
-└── tests/                # Test suite (optional)
+SKILL.md              # ← THE SKILL (required) - contains YAML frontmatter
+references/
+├── agents.md         # Agent definitions
+├── deployment.md     # Deployment guides
+└── business-ops.md   # Business workflows
 ```
 
-**`SKILL.md` is the actual skill file** that Claude Code reads. The `references/` folder contains supporting documentation.
-
-### Option 1: Download from Releases (Recommended)
+### For Claude.ai (Web)
 
 1. Go to [Releases](https://github.com/asklokesh/claudeskill-loki-mode/releases)
-2. Download the latest `loki-mode-X.X.X.zip`
-3. Extract to your skills directory:
+2. Download `loki-mode-X.X.X.zip` or `loki-mode-X.X.X.skill`
+3. Go to **Claude.ai → Settings → Features → Skills**
+4. Upload the zip/skill file
 
+The zip has `SKILL.md` at the root level as Claude.ai expects.
+
+### For Claude Code (CLI)
+
+**Option A: Download from Releases**
 ```bash
-# For personal use (all projects)
+# Download the Claude Code version
 cd ~/.claude/skills
-unzip ~/Downloads/loki-mode-*.zip
+curl -L -o loki-mode.zip https://github.com/asklokesh/claudeskill-loki-mode/releases/latest/download/loki-mode-claude-code-2.0.3.zip
+unzip loki-mode.zip && rm loki-mode.zip
 # Creates: ~/.claude/skills/loki-mode/SKILL.md
-
-# For a specific project only
-cd /path/to/your/project/.claude/skills
-unzip ~/Downloads/loki-mode-*.zip
-# Creates: .claude/skills/loki-mode/SKILL.md
 ```
 
-The zip contains a `loki-mode/` folder with the correct structure - just extract directly.
-
-### Option 2: Git Clone
-
+**Option B: Git Clone**
 ```bash
 # For personal use (all projects)
 git clone https://github.com/asklokesh/claudeskill-loki-mode.git ~/.claude/skills/loki-mode
@@ -103,10 +95,7 @@ git clone https://github.com/asklokesh/claudeskill-loki-mode.git ~/.claude/skill
 git clone https://github.com/asklokesh/claudeskill-loki-mode.git .claude/skills/loki-mode
 ```
 
-### Option 3: Minimal Install (Skill Only)
-
-If you only want the skill without examples/tests:
-
+**Option C: Minimal Install (curl)**
 ```bash
 mkdir -p ~/.claude/skills/loki-mode/references
 curl -o ~/.claude/skills/loki-mode/SKILL.md https://raw.githubusercontent.com/asklokesh/claudeskill-loki-mode/main/SKILL.md
@@ -119,10 +108,8 @@ curl -o ~/.claude/skills/loki-mode/references/business-ops.md https://raw.github
 
 ```bash
 # Check the skill is in place
-ls ~/.claude/skills/loki-mode/SKILL.md
-
-# Or for project-level
-ls .claude/skills/loki-mode/SKILL.md
+cat ~/.claude/skills/loki-mode/SKILL.md | head -5
+# Should show YAML frontmatter with name: loki-mode
 ```
 
 ## Usage
