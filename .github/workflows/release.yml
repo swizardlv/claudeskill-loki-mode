@@ -69,6 +69,7 @@ jobs:
           cp -r references release/loki-mode/
           cp -r examples release/loki-mode/
           cp -r tests release/loki-mode/
+          cp -r scripts release/loki-mode/
 
           cd release
           zip -r loki-mode-claude-code-${{ steps.version.outputs.version }}.zip loki-mode

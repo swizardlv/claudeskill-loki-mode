@@ -5,6 +5,22 @@ All notable changes to Loki Mode will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.0] - 2025-12-27
+
+### Added
+- **Autonomous Wrapper Script** (`scripts/loki-wrapper.sh`) - True autonomy with auto-resume:
+  - Monitors Claude Code process and detects when session ends
+  - Automatically resumes from checkpoint on rate limits or interruptions
+  - Exponential backoff with jitter (configurable via environment variables)
+  - State persistence in `.loki/wrapper-state.json`
+  - Completion detection via orchestrator state or `.loki/COMPLETED` marker
+  - Clean shutdown handling with SIGINT/SIGTERM traps
+  - Configurable: `LOKI_MAX_RETRIES`, `LOKI_BASE_WAIT`, `LOKI_MAX_WAIT`
+
+### Documentation
+- Added True Autonomy section to README explaining wrapper usage
+- Documented how wrapper detects session completion and rate limits
+
 ## [2.0.3] - 2025-12-27
 
 ### Fixed
@@ -46,12 +62,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `examples/static-landing-page.md` - Frontend/marketing testing
   - `examples/full-stack-demo.md` - Comprehensive test (~30-60 min)
 
-- **Comprehensive Test Suite** - 41 tests across 5 test files:
+- **Comprehensive Test Suite** - 53 tests across 6 test files:
   - `tests/test-bootstrap.sh` - Directory structure, state initialization (8 tests)
   - `tests/test-task-queue.sh` - Queue operations, priorities (8 tests)
   - `tests/test-circuit-breaker.sh` - Failure handling, recovery (8 tests)
   - `tests/test-agent-timeout.sh` - Timeout, stuck process handling (9 tests)
   - `tests/test-state-recovery.sh` - Checkpoints, recovery (8 tests)
+  - `tests/test-wrapper.sh` - Wrapper script, auto-resume (12 tests)
   - `tests/run-all-tests.sh` - Main test runner
 
 - **Timeout and Stuck Agent Handling** - New section in SKILL.md:
@@ -140,6 +157,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `references/deployment.md` - Cloud deployment guides
   - `references/business-ops.md` - Business operation workflows
 
+[2.1.0]: https://github.com/asklokesh/claudeskill-loki-mode/compare/v2.0.3...v2.1.0
 [2.0.3]: https://github.com/asklokesh/claudeskill-loki-mode/compare/v2.0.2...v2.0.3
 [2.0.2]: https://github.com/asklokesh/claudeskill-loki-mode/compare/v2.0.1...v2.0.2
 [2.0.1]: https://github.com/asklokesh/claudeskill-loki-mode/compare/v2.0.0...v2.0.1

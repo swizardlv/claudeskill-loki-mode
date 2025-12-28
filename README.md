@@ -81,7 +81,12 @@ The zip has `SKILL.md` at the root level as Claude.ai expects.
 ```bash
 # Download the Claude Code version
 cd ~/.claude/skills
-curl -L -o loki-mode.zip https://github.com/asklokesh/claudeskill-loki-mode/releases/latest/download/loki-mode-claude-code-2.0.3.zip
+
+# Get latest version number
+VERSION=$(curl -s https://api.github.com/repos/asklokesh/claudeskill-loki-mode/releases/latest | grep tag_name | cut -d'"' -f4 | tr -d 'v')
+
+# Download and extract
+curl -L -o loki-mode.zip "https://github.com/asklokesh/claudeskill-loki-mode/releases/download/v${VERSION}/loki-mode-claude-code-${VERSION}.zip"
 unzip loki-mode.zip && rm loki-mode.zip
 # Creates: ~/.claude/skills/loki-mode/SKILL.md
 ```
@@ -124,6 +129,63 @@ claude --dangerously-skip-permissions
 # Or with a specific PRD:
 > Loki Mode with PRD at ./docs/requirements.md
 ```
+
+## True Autonomy (Auto-Resume)
+
+By default, if Claude hits rate limits or the session ends unexpectedly, you need to manually restart. For true autonomy with automatic resume, use the wrapper script:
+
+```bash
+# Basic usage - interactive mode
+./scripts/loki-wrapper.sh
+
+# With a specific PRD
+./scripts/loki-wrapper.sh ./docs/requirements.md
+```
+
+### How the Wrapper Works
+
+1. **Launches Claude Code** with `--dangerously-skip-permissions` and your prompt
+2. **Monitors the process** - when Claude exits, checks the exit code
+3. **Detects rate limits** - any non-zero exit is treated as potential rate limit
+4. **Waits with exponential backoff** - starts at 60s, doubles each retry, caps at 1 hour
+5. **Resumes from checkpoint** - tells Claude to check `.loki/state/` and continue
+6. **Detects completion** - checks for `COMPLETED` phase in orchestrator state
+
+### Configuration
+
+Environment variables to customize behavior:
+
+```bash
+# Example with custom settings
+LOKI_MAX_RETRIES=100 \
+LOKI_BASE_WAIT=120 \
+LOKI_MAX_WAIT=7200 \
+./scripts/loki-wrapper.sh ./docs/requirements.md
+```
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `LOKI_MAX_RETRIES` | 50 | Maximum retry attempts before giving up |
+| `LOKI_BASE_WAIT` | 60 | Base wait time in seconds |
+| `LOKI_MAX_WAIT` | 3600 | Maximum wait time (1 hour) |
+| `LOKI_LOG_FILE` | `.loki/wrapper.log` | Log file location |
+
+### Wrapper State
+
+The wrapper saves state to `.loki/wrapper-state.json`:
+
+```json
+{
+  "retryCount": 3,
+  "status": "running",
+  "lastExitCode": 0,
+  "lastRun": "2025-01-15T10:30:00Z",
+  "prdPath": "./docs/requirements.md",
+  "pid": 12345
+}
+```
+
+This allows you to check progress and the wrapper to resume from the correct retry count if you restart it.
 
 ## How It Works
 
