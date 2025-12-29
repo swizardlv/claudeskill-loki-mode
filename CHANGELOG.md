@@ -5,6 +5,19 @@ All notable changes to Loki Mode will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.8.0] - 2025-12-29
+
+### Added
+- **Smart Rate Limit Detection** - Automatically detects rate limit messages and waits until reset:
+  - Parses "resets Xam/pm" from Claude output
+  - Calculates exact wait time until reset (+ 2 min buffer)
+  - Shows human-readable countdown (e.g., "4h 30m")
+  - Longer countdown intervals for multi-hour waits (60s vs 10s)
+  - No more wasted retry attempts during rate limits
+
+### Changed
+- Countdown display now shows human-readable format (e.g., "Resuming in 4h 28m...")
+
 ## [2.7.0] - 2025-12-28
 
 ### Added

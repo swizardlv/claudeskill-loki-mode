@@ -629,6 +629,69 @@ calculate_wait() {
 }
 
 #===============================================================================
+# Rate Limit Detection
+#===============================================================================
+
+# Detect rate limit from log and calculate wait time until reset
+# Returns: seconds to wait, or 0 if no rate limit detected
+detect_rate_limit() {
+    local log_file="$1"
+
+    # Look for rate limit message like "resets 4am" or "resets 10pm"
+    local reset_time=$(grep -o "resets [0-9]\+[ap]m" "$log_file" 2>/dev/null | tail -1 | grep -o "[0-9]\+[ap]m")
+
+    if [ -z "$reset_time" ]; then
+        echo 0
+        return
+    fi
+
+    # Parse the reset time
+    local hour=$(echo "$reset_time" | grep -o "[0-9]\+")
+    local ampm=$(echo "$reset_time" | grep -o "[ap]m")
+
+    # Convert to 24-hour format
+    if [ "$ampm" = "pm" ] && [ "$hour" -ne 12 ]; then
+        hour=$((hour + 12))
+    elif [ "$ampm" = "am" ] && [ "$hour" -eq 12 ]; then
+        hour=0
+    fi
+
+    # Get current time
+    local current_hour=$(date +%H)
+    local current_min=$(date +%M)
+    local current_sec=$(date +%S)
+
+    # Calculate seconds until reset
+    local current_secs=$((current_hour * 3600 + current_min * 60 + current_sec))
+    local reset_secs=$((hour * 3600))
+
+    local wait_secs=$((reset_secs - current_secs))
+
+    # If reset time is in the past, it means tomorrow
+    if [ $wait_secs -le 0 ]; then
+        wait_secs=$((wait_secs + 86400))  # Add 24 hours
+    fi
+
+    # Add 2 minute buffer to ensure limit is actually reset
+    wait_secs=$((wait_secs + 120))
+
+    echo $wait_secs
+}
+
+# Format seconds into human-readable time
+format_duration() {
+    local secs="$1"
+    local hours=$((secs / 3600))
+    local mins=$(((secs % 3600) / 60))
+
+    if [ $hours -gt 0 ]; then
+        echo "${hours}h ${mins}m"
+    else
+        echo "${mins}m"
+    fi
+}
+
+#===============================================================================
 # Check Completion
 #===============================================================================
 
@@ -905,17 +968,35 @@ if __name__ == "__main__":
             fi
         fi
 
-        # Handle retry
-        local wait_time=$(calculate_wait $retry)
-        log_warn "Will retry in ${wait_time}s..."
+        # Handle retry - check for rate limit first
+        local rate_limit_wait=$(detect_rate_limit "$log_file")
+        local wait_time
+
+        if [ $rate_limit_wait -gt 0 ]; then
+            wait_time=$rate_limit_wait
+            local human_time=$(format_duration $wait_time)
+            log_warn "Rate limit detected! Waiting until reset (~$human_time)..."
+            log_info "Rate limit resets at approximately $(date -v+${wait_time}S '+%I:%M %p' 2>/dev/null || date -d "+${wait_time} seconds" '+%I:%M %p' 2>/dev/null || echo 'soon')"
+        else
+            wait_time=$(calculate_wait $retry)
+            log_warn "Will retry in ${wait_time}s..."
+        fi
+
         log_info "Press Ctrl+C to cancel"
 
-        # Countdown
+        # Countdown with progress
         local remaining=$wait_time
+        local interval=10
+        # Use longer interval for long waits
+        if [ $wait_time -gt 1800 ]; then
+            interval=60
+        fi
+
         while [ $remaining -gt 0 ]; do
-            printf "\r${YELLOW}Resuming in ${remaining}s...${NC}    "
-            sleep 10
-            remaining=$((remaining - 10))
+            local human_remaining=$(format_duration $remaining)
+            printf "\r${YELLOW}Resuming in ${human_remaining}...${NC}          "
+            sleep $interval
+            remaining=$((remaining - interval))
         done
         echo ""
 
