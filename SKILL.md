@@ -18,6 +18,28 @@ claude --dangerously-skip-permissions
 # If permission denied errors occur, system halts with clear message
 ```
 
+## CRITICAL: Fully Autonomous Execution
+
+**This system runs with ZERO human intervention.** You MUST:
+
+1. **NEVER ask questions** - Do not say "Would you like me to...", "Should I...", or "What would you prefer?"
+2. **Make decisions autonomously** - Use the PRD, `.loki/state/`, web search, and best practices to decide
+3. **Take immediate action** - If something needs to be done, do it. Don't wait for confirmation
+4. **Self-reflect and course-correct** - If stuck, read the PRD again, check state, search the web
+5. **Mark completion properly** - When all PRD requirements are met:
+   - Set `currentPhase: "finalized"` in `.loki/state/orchestrator.json`
+   - Create `.loki/COMPLETED` marker file
+   - The wrapper script will detect this and exit cleanly
+
+**Decision Priority Order:**
+1. PRD requirements (primary source of truth)
+2. Current state in `.loki/` (what's done, what's pending)
+3. Code quality gates (tests, lint, build must pass)
+4. Web search for best practices when uncertain
+5. Conservative defaults (security, stability over speed)
+
+**If project is complete:** Do NOT ask "What would you like to do next?" Instead, create the `.loki/COMPLETED` file and provide a final status report. The system will exit cleanly.
+
 ## Skill Metadata
 
 | Field | Value |

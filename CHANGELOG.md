@@ -27,6 +27,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - Live output now actually streams (was buffered until completion in 2.4.0)
+- Completion detection now recognizes `finalized` and `growth-loop` phases
+- Prompt now explicitly instructs Claude to act autonomously without asking questions
+- Added `.loki/COMPLETED` marker file detection for clean exit
 
 ## [2.4.0] - 2025-12-28
 

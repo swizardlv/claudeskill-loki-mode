@@ -611,7 +611,8 @@ is_completed() {
     if [ -f ".loki/state/orchestrator.json" ]; then
         if command -v python3 &> /dev/null; then
             local phase=$(python3 -c "import json; print(json.load(open('.loki/state/orchestrator.json')).get('currentPhase', ''))" 2>/dev/null || echo "")
-            if [ "$phase" = "COMPLETED" ] || [ "$phase" = "complete" ]; then
+            # Accept various completion states
+            if [ "$phase" = "COMPLETED" ] || [ "$phase" = "complete" ] || [ "$phase" = "finalized" ] || [ "$phase" = "growth-loop" ]; then
                 return 0
             fi
         fi
@@ -668,17 +669,20 @@ build_prompt() {
     local retry="$1"
     local prd="$2"
 
+    # Core autonomous instructions - DO NOT ask questions, take action
+    local autonomous_suffix="CRITICAL: You are running in FULLY AUTONOMOUS mode. DO NOT ask questions or wait for user input. Make decisions based on: 1) The PRD requirements, 2) Current state in .loki/, 3) Best practices and web search if needed. Take immediate action. If the project is complete, set currentPhase to 'finalized' in orchestrator.json and create .loki/COMPLETED marker file."
+
     if [ $retry -eq 0 ]; then
         if [ -n "$prd" ]; then
-            echo "Loki Mode with PRD at $prd"
+            echo "Loki Mode with PRD at $prd. $autonomous_suffix"
         else
-            echo "Loki Mode"
+            echo "Loki Mode. $autonomous_suffix"
         fi
     else
         if [ -n "$prd" ]; then
-            echo "Loki Mode - Resume from checkpoint. PRD at $prd. This is retry #$retry after interruption. Check .loki/state/ for current progress and continue from where we left off."
+            echo "Loki Mode - Resume from checkpoint. PRD at $prd. This is retry #$retry. Check .loki/state/ for progress and continue autonomously. $autonomous_suffix"
         else
-            echo "Loki Mode - Resume from checkpoint. This is retry #$retry after interruption. Check .loki/state/ for current progress and continue from where we left off."
+            echo "Loki Mode - Resume from checkpoint. This is retry #$retry. Check .loki/state/ for progress and continue autonomously. $autonomous_suffix"
         fi
     fi
 }
