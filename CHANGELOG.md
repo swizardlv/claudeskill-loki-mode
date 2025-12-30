@@ -5,6 +5,17 @@ All notable changes to Loki Mode will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.8.1] - 2025-12-29
+
+### Fixed
+- **Dashboard showing all 0s** - Added explicit instructions to SKILL.md to use queue JSON files instead of TodoWrite tool
+- Claude now properly populates `.loki/queue/*.json` files for live dashboard tracking
+- Added queue system usage guide with JSON format and examples
+
+### Changed
+- SKILL.md now explicitly prohibits TodoWrite in favor of queue system
+- Added "Task Management: Use Queue System" section with clear examples
+
 ## [2.8.0] - 2025-12-29
 
 ### Added

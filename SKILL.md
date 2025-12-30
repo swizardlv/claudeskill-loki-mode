@@ -40,6 +40,67 @@ claude --dangerously-skip-permissions
 
 **If project is complete:** Do NOT ask "What would you like to do next?" Instead, create the `.loki/COMPLETED` file and provide a final status report. The system will exit cleanly.
 
+## Task Management: Use Queue System (NOT TodoWrite)
+
+**CRITICAL:** Loki Mode uses a distributed task queue system for the live dashboard. You MUST:
+
+1. **NEVER use the TodoWrite tool** - It's invisible to the dashboard
+2. **ALWAYS use queue JSON files** for task tracking:
+   - `.loki/queue/pending.json` - Tasks not yet started
+   - `.loki/queue/in-progress.json` - Tasks currently being worked on
+   - `.loki/queue/completed.json` - Successfully finished tasks
+   - `.loki/queue/failed.json` - Tasks that failed
+
+### Queue File Format
+```json
+[
+  {
+    "id": "task-001",
+    "type": "unit-test",
+    "payload": {
+      "description": "Run backend unit tests",
+      "action": "npm test",
+      "file": "backend/src/auth.test.ts"
+    },
+    "status": "pending",
+    "createdAt": "2025-12-29T15:30:00Z",
+    "claimedBy": null,
+    "lastError": null
+  }
+]
+```
+
+### How to Use Queues
+
+**Adding a task:**
+```bash
+# Read current pending queue
+QUEUE=$(cat .loki/queue/pending.json)
+
+# Add new task using jq or Write tool
+cat > .loki/queue/pending.json << 'EOF'
+[{"id":"task-001","type":"unit-test","payload":{"description":"Run tests"},"status":"pending"}]
+EOF
+```
+
+**Moving task to in-progress:**
+```bash
+# Remove from pending.json, add to in-progress.json
+# Update status to "in-progress", set claimedBy to your agent ID
+```
+
+**Completing a task:**
+```bash
+# Remove from in-progress.json, add to completed.json
+```
+
+**Failing a task:**
+```bash
+# Remove from in-progress.json, add to failed.json with lastError field
+```
+
+**IMPORTANT:** The dashboard refreshes every 5 seconds and shows task counts and details from these files. Users are watching the dashboard in real-time!
+
 ## Codebase Analysis Mode (No PRD Provided)
 
 When Loki Mode is invoked WITHOUT a PRD, it operates in **Codebase Analysis Mode**:
