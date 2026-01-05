@@ -5,6 +5,34 @@ All notable changes to Loki Mode will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.21.0] - 2026-01-05
+
+### Added - Published HumanEval Benchmark Results
+
+**98.17% Pass@1 on HumanEval** - Beats MetaGPT by 10.5 percentage points!
+
+| Metric | Value |
+|--------|-------|
+| Pass Rate | 98.17% |
+| Passed | 161/164 |
+| Failed | 3 |
+| Model | Claude Opus 4.5 |
+| Time | 21.1 minutes |
+
+**Competitor Comparison:**
+- MetaGPT: 85.9-87.7%
+- **Loki Mode: 98.17%** (+10.5%)
+
+### Fixed
+- **Benchmark Indentation Bug** - Solutions now include complete function with proper indentation
+  - Previous bug: Claude returned function body without indentation
+  - Fix: Prompt now requests complete function and auto-fixes indentation
+  - Result: Pass rate improved from ~2% to 98.17%
+
+### Changed
+- Updated `docs/COMPETITIVE-ANALYSIS.md` with published benchmark results
+- Benchmark results stored in `benchmarks/results/2026-01-05-00-49-17/`
+
 ## [2.20.0] - 2026-01-05
 
 ### Added - Benchmark Execution Mode

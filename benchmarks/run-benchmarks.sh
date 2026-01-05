@@ -266,15 +266,19 @@ def solve_problem(problem):
     test = problem["test"]
     canonical = problem.get("canonical_solution", "")
 
-    # Create prompt for Claude
+    # Create prompt for Claude - ask for COMPLETE function to avoid indentation issues
     claude_prompt = f'''You are solving a HumanEval coding problem. Complete the Python function below.
-
-IMPORTANT: Only output the function implementation. Do not include any explanation, markdown, or extra text.
-Do not include the function signature - just the body starting after the docstring.
 
 {prompt}
 
-Output ONLY the function body (the code that goes after the docstring). No markdown, no explanation.'''
+INSTRUCTIONS:
+1. Output the COMPLETE function including the signature and docstring shown above
+2. Fill in the implementation after the docstring
+3. Use proper 4-space indentation for the function body
+4. Output ONLY the Python code - no markdown, no explanation, no ```python blocks
+5. The function must be syntactically valid Python
+
+Output the complete function now:'''
 
     try:
         # Call Claude
@@ -285,17 +289,29 @@ Output ONLY the function body (the code that goes after the docstring). No markd
             timeout=PROBLEM_TIMEOUT
         )
 
-        solution_body = result.stdout.strip()
+        solution = result.stdout.strip()
 
-        # Reconstruct full solution
-        # The prompt contains the function signature and docstring
-        # We need to append the solution body
-        full_solution = prompt + solution_body
+        # Clean up solution - remove markdown code blocks if present
+        if solution.startswith("```python"):
+            solution = solution[9:]
+        if solution.startswith("```"):
+            solution = solution[3:]
+        if solution.endswith("```"):
+            solution = solution[:-3]
+        solution = solution.strip()
+
+        # Verify solution contains the function definition
+        if f"def {entry_point}" not in solution:
+            # Claude didn't include function signature, prepend it
+            # Indent the body properly
+            lines = solution.split('\n')
+            indented_lines = ['    ' + line if line.strip() and not line.startswith('    ') else line for line in lines]
+            solution = prompt + '\n'.join(indented_lines)
 
         return {
             "task_id": task_id,
-            "solution": full_solution,
-            "solution_body": solution_body,
+            "solution": solution,
+            "solution_body": solution,
             "error": None
         }
     except subprocess.TimeoutExpired:

@@ -15,7 +15,7 @@ Loki Mode has **unique differentiation** in business operations automation but f
 | **GitHub Stars** | 349 | 10,700 | 62,400 | 25,000+ | N/A (Commercial) | N/A (Commercial) |
 | **Agent Count** | 37 types | 64+ agents | 5 roles | Unlimited | 8 parallel | 1 autonomous |
 | **Parallel Execution** | Yes (100+) | Yes (swarms) | Sequential | Yes (crews) | Yes (8 worktrees) | Yes (fleet) |
-| **Published Benchmarks** | None | None | 85.9-87.7% HumanEval | None | ~250 tok/s | 15% complex tasks |
+| **Published Benchmarks** | **98.17% HumanEval** | None | 85.9-87.7% HumanEval | None | ~250 tok/s | 15% complex tasks |
 | **SWE-bench Score** | Unknown | Unknown | Unknown | Unknown | Unknown | Unknown |
 | **Full SDLC** | Yes (8 phases) | Yes | Partial | Partial | No | Partial |
 | **Business Ops** | **Yes (8 agents)** | No | No | No | No | No |
@@ -152,12 +152,36 @@ Loki Mode has **unique differentiation** in business operations automation but f
 
 ---
 
+## Benchmark Results (Published 2026-01-05)
+
+### HumanEval Results
+
+| Metric | Value |
+|--------|-------|
+| **Pass@1** | **98.17%** |
+| Passed | 161/164 problems |
+| Failed | 3 problems |
+| Model | Claude Opus 4.5 |
+| Time | 21.1 minutes |
+
+**Competitor Comparison:**
+
+| System | HumanEval Pass@1 |
+|--------|------------------|
+| **Loki Mode** | **98.17%** |
+| MetaGPT | 85.9-87.7% |
+| Difference | **+10.5%** |
+
+**Failed Problems:** HumanEval/32, HumanEval/38, HumanEval/132
+
+---
+
 ## Critical Gaps to Address
 
-### Priority 1: Benchmarks (Critical)
-- **Gap:** No published HumanEval or SWE-bench scores
-- **Impact:** Claims are unverifiable; credibility suffers
-- **Solution:** Implement benchmark runner, publish results
+### Priority 1: Benchmarks (COMPLETED)
+- **Gap:** ~~No published HumanEval or SWE-bench scores~~ RESOLVED
+- **Result:** 98.17% HumanEval Pass@1 (beats MetaGPT by 10.5%)
+- **Next:** Run SWE-bench Lite for additional validation
 
 ### Priority 2: Security Model (Critical for Enterprise)
 - **Gap:** Relies on `--dangerously-skip-permissions`
