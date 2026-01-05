@@ -302,11 +302,13 @@ start_status_monitor() {
 
     # Initial update
     update_status_file
+    update_agents_state
 
     # Background update loop
     (
         while true; do
             update_status_file
+            update_agents_state
             sleep 5
         done
     ) &
@@ -328,7 +330,7 @@ stop_status_monitor() {
 #===============================================================================
 
 generate_dashboard() {
-    # Generate HTML dashboard with Anthropic design language
+    # Generate HTML dashboard with Anthropic design language + Agent Monitoring
     cat > .loki/dashboard/index.html << 'DASHBOARD_HTML'
 <!DOCTYPE html>
 <html lang="en">
@@ -396,6 +398,107 @@ generate_dashboard() {
         .stat.progress .number { color: #5B8DEF; }
         .stat.completed .number { color: #2E9E6E; }
         .stat.failed .number { color: #D44F4F; }
+        .stat.agents .number { color: #9B6DD6; }
+        .section-header {
+            text-align: center;
+            font-size: 16px;
+            font-weight: 600;
+            color: #666;
+            margin: 40px 0 20px 0;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .agents-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 16px;
+            max-width: 1400px;
+            margin: 0 auto 40px auto;
+        }
+        .agent-card {
+            background: #FFF;
+            border: 1px solid #E5E3DE;
+            border-radius: 12px;
+            padding: 16px;
+            transition: box-shadow 0.2s ease, border-color 0.2s ease;
+        }
+        .agent-card:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+            border-color: #9B6DD6;
+        }
+        .agent-card .agent-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 12px;
+        }
+        .agent-card .agent-id {
+            font-size: 11px;
+            color: #999;
+            font-family: monospace;
+        }
+        .agent-card .model-badge {
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .agent-card .model-badge.sonnet {
+            background: #E8F0FD;
+            color: #5B8DEF;
+        }
+        .agent-card .model-badge.haiku {
+            background: #FFF4E6;
+            color: #F59E0B;
+        }
+        .agent-card .model-badge.opus {
+            background: #F3E8FF;
+            color: #9B6DD6;
+        }
+        .agent-card .agent-type {
+            font-size: 14px;
+            font-weight: 600;
+            color: #1A1A1A;
+            margin-bottom: 8px;
+        }
+        .agent-card .agent-status {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 500;
+            margin-bottom: 12px;
+        }
+        .agent-card .agent-status.active {
+            background: #E6F5EE;
+            color: #2E9E6E;
+        }
+        .agent-card .agent-status.completed {
+            background: #F0EFEA;
+            color: #666;
+        }
+        .agent-card .agent-work {
+            font-size: 12px;
+            color: #666;
+            line-height: 1.5;
+            margin-bottom: 8px;
+        }
+        .agent-card .agent-meta {
+            display: flex;
+            gap: 12px;
+            font-size: 11px;
+            color: #999;
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px solid #F0EFEA;
+        }
+        .agent-card .agent-meta span {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
         .columns {
             display: flex;
             gap: 20px;
@@ -512,11 +615,15 @@ generate_dashboard() {
         <div class="phase" id="phase">Loading...</div>
     </div>
     <div class="stats">
+        <div class="stat agents"><div class="number" id="agents-count">-</div><div class="label">Active Agents</div></div>
         <div class="stat pending"><div class="number" id="pending-count">-</div><div class="label">Pending</div></div>
         <div class="stat progress"><div class="number" id="progress-count">-</div><div class="label">In Progress</div></div>
         <div class="stat completed"><div class="number" id="completed-count">-</div><div class="label">Completed</div></div>
         <div class="stat failed"><div class="number" id="failed-count">-</div><div class="label">Failed</div></div>
     </div>
+    <div class="section-header">Active Agents</div>
+    <div class="agents-grid" id="agents-grid"></div>
+    <div class="section-header">Task Queue</div>
     <div class="columns">
         <div class="column pending"><h2>Pending <span class="count" id="pending-badge">0</span></h2><div id="pending-tasks"></div></div>
         <div class="column progress"><h2>In Progress <span class="count" id="progress-badge">0</span></h2><div id="progress-tasks"></div></div>
@@ -534,8 +641,51 @@ generate_dashboard() {
                 const text = await res.text();
                 if (!text.trim()) return [];
                 const data = JSON.parse(text);
-                return Array.isArray(data) ? data : (data.tasks || []);
+                return Array.isArray(data) ? data : (data.tasks || data.agents || []);
             } catch { return []; }
+        }
+        function getModelClass(model) {
+            if (!model) return 'sonnet';
+            const m = model.toLowerCase();
+            if (m.includes('haiku')) return 'haiku';
+            if (m.includes('opus')) return 'opus';
+            return 'sonnet';
+        }
+        function formatDuration(isoDate) {
+            if (!isoDate) return 'Unknown';
+            const start = new Date(isoDate);
+            const now = new Date();
+            const seconds = Math.floor((now - start) / 1000);
+            if (seconds < 60) return seconds + 's';
+            if (seconds < 3600) return Math.floor(seconds / 60) + 'm';
+            return Math.floor(seconds / 3600) + 'h ' + Math.floor((seconds % 3600) / 60) + 'm';
+        }
+        function renderAgent(agent) {
+            const modelClass = getModelClass(agent.model);
+            const modelName = agent.model || 'Sonnet 4.5';
+            const agentType = agent.agent_type || 'general-purpose';
+            const status = agent.status === 'completed' ? 'completed' : 'active';
+            const currentTask = agent.current_task || (agent.tasks_completed && agent.tasks_completed.length > 0
+                ? 'Completed: ' + agent.tasks_completed.join(', ')
+                : 'Initializing...');
+            const duration = formatDuration(agent.spawned_at);
+            const tasksCount = agent.tasks_completed ? agent.tasks_completed.length : 0;
+
+            return `
+                <div class="agent-card">
+                    <div class="agent-header">
+                        <div class="agent-id">${agent.agent_id || 'Unknown'}</div>
+                        <div class="model-badge ${modelClass}">${modelName}</div>
+                    </div>
+                    <div class="agent-type">${agentType}</div>
+                    <div class="agent-status ${status}">${status}</div>
+                    <div class="agent-work">${currentTask}</div>
+                    <div class="agent-meta">
+                        <span>⏱ ${duration}</span>
+                        <span>✓ ${tasksCount} tasks</span>
+                    </div>
+                </div>
+            `;
         }
         function renderTask(task) {
             const payload = task.payload || {};
@@ -544,12 +694,21 @@ generate_dashboard() {
             return `<div class="task"><div class="id">${task.id}</div><span class="type">${task.type || 'general'}</span><div class="title">${title}</div>${error}</div>`;
         }
         async function loadData() {
-            const [pending, progress, completed, failed] = await Promise.all([
+            const [pending, progress, completed, failed, agents] = await Promise.all([
                 loadJSON('../queue/pending.json'),
                 loadJSON('../queue/in-progress.json'),
                 loadJSON('../queue/completed.json'),
-                loadJSON('../queue/failed.json')
+                loadJSON('../queue/failed.json'),
+                loadJSON('../state/agents.json')
             ]);
+
+            // Agent stats
+            document.getElementById('agents-count').textContent = agents.length;
+            document.getElementById('agents-grid').innerHTML = agents.length
+                ? agents.map(renderAgent).join('')
+                : '<div class="empty">No active agents</div>';
+
+            // Task stats
             document.getElementById('pending-count').textContent = pending.length;
             document.getElementById('progress-count').textContent = progress.length;
             document.getElementById('completed-count').textContent = completed.length;
@@ -562,6 +721,7 @@ generate_dashboard() {
             document.getElementById('progress-tasks').innerHTML = progress.length ? progress.map(renderTask).join('') : '<div class="empty">No tasks in progress</div>';
             document.getElementById('completed-tasks').innerHTML = completed.length ? completed.slice(-10).reverse().map(renderTask).join('') : '<div class="empty">No completed tasks</div>';
             document.getElementById('failed-tasks').innerHTML = failed.length ? failed.map(renderTask).join('') : '<div class="empty">No failed tasks</div>';
+
             try {
                 const state = await fetch('../state/orchestrator.json?t=' + Date.now()).then(r => r.json());
                 document.getElementById('phase').textContent = 'Phase: ' + (state.currentPhase || 'UNKNOWN');
@@ -574,6 +734,44 @@ generate_dashboard() {
 </body>
 </html>
 DASHBOARD_HTML
+}
+
+update_agents_state() {
+    # Aggregate agent information from .agent/sub-agents/*.json into .loki/state/agents.json
+    local agents_dir=".agent/sub-agents"
+    local output_file=".loki/state/agents.json"
+
+    # Initialize empty array if no agents directory
+    if [ ! -d "$agents_dir" ]; then
+        echo "[]" > "$output_file"
+        return
+    fi
+
+    # Find all agent JSON files and aggregate them
+    local agents_json="["
+    local first=true
+
+    for agent_file in "$agents_dir"/*.json; do
+        # Skip if no JSON files exist
+        [ -e "$agent_file" ] || continue
+
+        # Read agent JSON
+        local agent_data=$(cat "$agent_file" 2>/dev/null)
+        if [ -n "$agent_data" ]; then
+            # Add comma separator for all but first entry
+            if [ "$first" = true ]; then
+                first=false
+            else
+                agents_json="${agents_json},"
+            fi
+            agents_json="${agents_json}${agent_data}"
+        fi
+    done
+
+    agents_json="${agents_json}]"
+
+    # Write aggregated data
+    echo "$agents_json" > "$output_file"
 }
 
 start_dashboard() {

@@ -5,6 +5,48 @@ All notable changes to Loki Mode will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.18.2] - 2026-01-04
+
+### Added
+- **Agent Monitoring Dashboard** - Real-time visibility into active agents (run.sh:330-735):
+  - **Active Agents Section** with grid layout displaying all spawned agents
+  - **Agent Cards** showing:
+    - Agent ID and type (general-purpose, QA, DevOps, etc.)
+    - Model badge with color coding (Sonnet = blue, Haiku = orange, Opus = purple)
+    - Current status (active/completed)
+    - Current work being performed
+    - Runtime duration (e.g., "2h 15m")
+    - Tasks completed count
+  - **Active Agents Stat** in top stats bar
+  - Auto-refreshes every 3 seconds alongside task queue
+  - Responsive grid layout (adapts to screen size)
+
+- **Agent State Aggregator** - Collects agent data for dashboard (run.sh:737-773):
+  - `update_agents_state()` function aggregates `.agent/sub-agents/*.json` files
+  - Writes to `.loki/state/agents.json` for dashboard consumption
+  - Runs every 5 seconds via status monitor (run.sh:305, 311)
+  - Handles missing directories gracefully (returns empty array)
+  - Supports agent lineage schema from CONSTITUTION.md
+
+### Changed
+- **Dashboard Layout** - Reorganized for agent monitoring (run.sh:622-630):
+  - Added "Active Agents" section header above agent grid
+  - Added "Task Queue" section header above task columns
+  - Reordered stats to show "Active Agents" first
+  - Enhanced visual hierarchy with section separators
+
+- **Status Monitor** - Now updates agent state alongside tasks (run.sh:300-319):
+  - Calls `update_agents_state()` on startup
+  - Updates agents.json every 5 seconds in background loop
+  - Provides real-time agent tracking data for dashboard
+
+### Impact
+- **Visibility:** Real-time monitoring of all active agents, their models, and work
+- **Performance Tracking:** See which agents are using which models (Haiku vs Sonnet vs Opus)
+- **Debugging:** Quickly identify stuck agents or unbalanced workloads
+- **Cost Awareness:** Visual indication of model usage (expensive Opus vs cheap Haiku)
+- **User Request:** Directly addresses user's question "can you also have ability to see how many agents and their roles and work being done and their model?"
+
 ## [2.18.1] - 2026-01-04
 
 ### Fixed
