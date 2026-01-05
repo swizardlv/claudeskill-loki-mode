@@ -8,10 +8,11 @@
 
 ## Project Overview
 
-**Loki Mode** is a Claude Code skill that provides a multi-agent autonomous startup system. It orchestrates 37 specialized agents across 6 swarms to take a PRD from idea to fully deployed product.
+**Loki Mode** is a Claude Code skill that provides a multi-agent autonomous startup system. It dynamically orchestrates specialized agents across 6 swarms to take a PRD from idea to fully deployed product. It spawns only the agents needed - from a few for simple projects to 100+ for complex startups.
 
 ### Key Features
-- 37 agents across 6 swarms (Engineering, Operations, Business, Data, Product, Growth)
+- 37 specialized agent types across 6 swarms (Engineering, Operations, Business, Data, Product, Growth)
+- Dynamic agent scaling based on project complexity
 - Task tool for subagent dispatch with fresh context
 - Distributed task queue (pending, in-progress, completed, failed, dead-letter)
 - Circuit breakers for per-agent failure handling
@@ -30,7 +31,7 @@ claudeskill-loki-mode/
 ├── CHANGELOG.md                # Full version history
 ├── README.md                   # Main documentation
 ├── references/
-│   ├── agents.md               # 37 agent definitions
+│   ├── agents.md               # 37 agent type definitions
 │   ├── deployment.md           # Cloud deployment guides
 │   └── business-ops.md         # Business operation workflows
 ├── examples/

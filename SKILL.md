@@ -1592,7 +1592,7 @@ Before implementing, YOU MUST:
 **Trigger extended reasoning with "Ultra think" prefix:**
 
 ```markdown
-Ultra think: How should we handle rate limiting across 37 parallel agents without hitting API limits?
+Ultra think: How should we handle rate limiting across 100+ parallel agents without hitting API limits?
 
 [Claude will use extended reasoning budget to analyze edge cases, trade-offs, and nuanced solutions]
 ```
@@ -3359,11 +3359,13 @@ LOCK_FILE=".loki/state/locks/queue.lock"
 ) 200>"$LOCK_FILE"
 ```
 
-## Agent Types (37 Total)
+## Agent Types (37 Specialized Types)
+
+Loki Mode has 37 predefined agent types. The orchestrator spawns only the agents needed for your project - a simple app might use 5-10 agents, while a complex startup could spawn 100+ agents working in parallel.
 
 See `references/agents.md` for complete definitions. Summary:
 
-### Engineering Swarm (8 agents)
+### Engineering Swarm (8 types)
 | Agent | Capabilities |
 |-------|-------------|
 | `eng-frontend` | React/Vue/Svelte, TypeScript, Tailwind, accessibility |
@@ -3375,7 +3377,7 @@ See `references/agents.md` for complete definitions. Summary:
 | `eng-perf` | Profiling, benchmarking, optimization, caching |
 | `eng-infra` | Docker, K8s manifests, IaC review |
 
-### Operations Swarm (8 agents)
+### Operations Swarm (8 types)
 | Agent | Capabilities |
 |-------|-------------|
 | `ops-devops` | CI/CD pipelines, GitHub Actions, GitLab CI |
@@ -3387,7 +3389,7 @@ See `references/agents.md` for complete definitions. Summary:
 | `ops-cost` | Cloud cost optimization, right-sizing, FinOps |
 | `ops-compliance` | SOC2, GDPR, HIPAA, PCI-DSS, audit preparation |
 
-### Business Swarm (8 agents)
+### Business Swarm (8 types)
 | Agent | Capabilities |
 |-------|-------------|
 | `biz-marketing` | Landing pages, SEO, content, email campaigns |
@@ -3399,21 +3401,21 @@ See `references/agents.md` for complete definitions. Summary:
 | `biz-investor` | Pitch decks, investor updates, data room, cap table |
 | `biz-partnerships` | BD outreach, integration partnerships, co-marketing |
 
-### Data Swarm (3 agents)
+### Data Swarm (3 types)
 | Agent | Capabilities |
 |-------|-------------|
 | `data-ml` | Model training, MLOps, feature engineering, inference |
 | `data-eng` | ETL pipelines, data warehousing, dbt, Airflow |
 | `data-analytics` | Product analytics, A/B tests, dashboards, insights |
 
-### Product Swarm (3 agents)
+### Product Swarm (3 types)
 | Agent | Capabilities |
 |-------|-------------|
 | `prod-pm` | Backlog grooming, prioritization, roadmap, specs |
 | `prod-design` | Design system, Figma, UX patterns, prototypes |
 | `prod-techwriter` | API docs, guides, tutorials, release notes |
 
-### Growth Swarm (4 agents)
+### Growth Swarm (4 types)
 | Agent | Capabilities |
 |-------|-------------|
 | `growth-hacker` | Growth experiments, viral loops, referral programs |
@@ -3421,7 +3423,7 @@ See `references/agents.md` for complete definitions. Summary:
 | `growth-success` | Customer success, health scoring, churn prevention |
 | `growth-lifecycle` | Email lifecycle, in-app messaging, re-engagement |
 
-### Review Swarm (3 agents)
+### Review Swarm (3 types)
 | Agent | Capabilities |
 |-------|-------------|
 | `review-code` | Code quality, design patterns, SOLID, maintainability |

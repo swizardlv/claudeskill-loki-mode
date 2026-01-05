@@ -165,7 +165,7 @@ done
 ## Benefits of Combined Usage
 
 ### 1. Visual Progress Tracking
-See all 37 Loki agents as tasks moving across your kanban board.
+See all active Loki agents as tasks moving across your kanban board.
 
 ### 2. Safe Isolation
 Vibe Kanban runs each agent in isolated git worktrees, perfect for Loki's parallel development.

@@ -3,14 +3,14 @@
 **Multi-Agent Autonomous Startup System for Claude Code**
 
 [![Claude Code](https://img.shields.io/badge/Claude-Code-orange)](https://claude.ai)
-[![Agents](https://img.shields.io/badge/Agents-37-blue)]()
+[![Agent Types](https://img.shields.io/badge/Agent%20Types-37-blue)]()
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
 > Transform a PRD into a fully deployed, revenue-generating product with zero human intervention.
 
 ## What is Loki Mode?
 
-Loki Mode is a Claude Code skill that orchestrates 37 specialized AI agents across 6 swarms to autonomously build, deploy, and operate a complete startup. Just say **"Loki Mode"** and provide a PRD.
+Loki Mode is a Claude Code skill that dynamically orchestrates specialized AI agents across 6 swarms to autonomously build, deploy, and operate a complete startup. It spawns only the agents you need, scaling from simple projects (few agents) to complex startups (100+ parallel agents). Just say **"Loki Mode"** and provide a PRD.
 
 ```
 PRD → Competitive Research → Architecture → Development → Testing → Deployment → Marketing → Revenue
@@ -20,7 +20,7 @@ PRD → Competitive Research → Architecture → Development → Testing → De
 
 | Category | Capabilities |
 |----------|-------------|
-| **Multi-Agent System** | 37 agents across Engineering, Operations, Business, Data, Product, and Growth swarms |
+| **Multi-Agent System** | 37 agent types across Engineering, Operations, Business, Data, Product, and Growth swarms - dynamically spawned based on workload |
 | **Parallel Code Review** | 3 specialized reviewers (code, business, security) running simultaneously |
 | **Quality Gates** | 14 automated gates including security scans, load tests, accessibility |
 | **Deployment** | AWS, GCP, Azure, Vercel, Railway with blue-green and canary strategies |
@@ -377,8 +377,9 @@ The skill includes a comprehensive test suite:
 
 | Feature | Basic Skills | Loki Mode |
 |---------|-------------|-----------|
-| Agents | 1 | 37 |
-| Swarms | - | 6 |
+| Agent Types | 1 | 37 (dynamically spawned) |
+| Parallel Scaling | No | Yes (100+ agents for complex projects) |
+| Swarms | - | 6 specialized swarms |
 | Code Review | Manual | Parallel 3-reviewer |
 | Deployment | None | Multi-cloud |
 | Business Ops | None | Full stack |
@@ -400,7 +401,7 @@ npx vibe-kanban
 ```
 
 Benefits:
-- Visual progress tracking of all 37 agents
+- Visual progress tracking of all active agents
 - Manual intervention/prioritization when needed
 - Code review with visual diffs
 - Multi-project dashboard

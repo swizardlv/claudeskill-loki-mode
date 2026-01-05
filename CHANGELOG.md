@@ -5,6 +5,35 @@ All notable changes to Loki Mode will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.18.3] - 2026-01-04
+
+### Changed
+- **Clarified Agent Scaling Model** - Fixed misleading "37 agents" references across all documentation:
+  - **README.md:** Badge changed to "Agent Types: 37", description now emphasizes dynamic scaling (few agents for simple projects, 100+ for complex startups)
+  - **README.md:** Features table updated to "37 agent types across 6 swarms - dynamically spawned based on workload"
+  - **README.md:** Comparison table changed "Agents: 37" → "Agent Types: 37 (dynamically spawned)" and added "Parallel Scaling" row
+  - **README.md:** Vibe Kanban benefits changed from "all 37 agents" → "all active agents"
+  - **SKILL.md:** Section header changed to "Agent Types (37 Specialized Types)" with clarification about dynamic spawning
+  - **SKILL.md:** All swarm headers changed from "(X agents)" → "(X types)"
+  - **SKILL.md:** Example updated from "37 parallel agents" → "100+ parallel agents"
+  - **CONTEXT-EXPORT.md:** Updated to emphasize "37 specialized agent types" and dynamic scaling
+  - **agents.md:** Header changed to "Agent Type Definitions" with note about dynamic spawning based on project needs
+  - **integrations/vibe-kanban.md:** Changed "all 37 Loki agents" → "all active Loki agents"
+
+### Why This Matters
+The previous "37 agents" messaging was misleading because:
+- **37 is the number of agent TYPES**, not the number of agents that spawn
+- Loki Mode **dynamically spawns** only the agents needed for your specific project
+- A simple todo app might use 5-10 agents total
+- A complex startup could spawn 100+ agents working in parallel (multiple instances of the same type)
+- The system is designed for **functionality-based scaling**, not fixed counts
+
+### Impact
+- **Clarity:** Eliminates confusion about how many agents will actually run
+- **Realistic Expectations:** Users understand the system scales to their needs
+- **Accuracy:** Documentation now reflects the actual dynamic agent spawning behavior
+- **User Feedback:** Directly addresses user question about why docs mention "37 agents"
+
 ## [2.18.2] - 2026-01-04
 
 ### Added
