@@ -5,6 +5,33 @@ All notable changes to Loki Mode will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.33.0] - 2026-01-08
+
+### Added - AWS Bedrock Routing Mode Optimization
+
+**Source:** [AWS Multi-Agent Orchestration Guidance](https://aws.amazon.com/solutions/guidance/multi-agent-orchestration-on-aws/)
+
+**New Pattern: Routing Mode Optimization**
+
+Two dispatch modes based on task complexity - reduces latency for simple tasks:
+
+| Mode | When to Use | Behavior |
+|------|-------------|----------|
+| **Direct Routing** | Simple, single-domain tasks | Route directly to specialist agent, skip orchestration |
+| **Supervisor Mode** | Complex, multi-step tasks | Full decomposition, coordination, result synthesis |
+
+**Key Insights from AWS:**
+- Simple tasks → Direct dispatch to Haiku (faster, minimal context)
+- Complex tasks → Full supervisor orchestration (Sonnet coordination)
+- Context depth varies by routing mode (avoid confusing simple agents with complex history)
+- 10-agent limit per supervisor (validates our MAX_PARALLEL_AGENTS=10)
+
+**Files Updated:**
+- `SKILL.md` - Added Routing Mode pattern to Essential Patterns and new section with decision logic
+- `ACKNOWLEDGEMENTS.md` - Added AWS Bedrock section with 4 source citations
+
+---
+
 ## [2.32.1] - 2026-01-08
 
 ### Fixed - Critical Bug Fixes

@@ -54,6 +54,19 @@ OpenAI's Agents SDK and deep research patterns provide foundational patterns for
 | [Computer-Using Agent](https://openai.com/index/computer-using-agent/) | Computer use patterns |
 | [Agentic AI Foundation](https://openai.com/index/agentic-ai-foundation/) | Industry standards, interoperability |
 
+### Amazon Web Services (AWS)
+
+AWS Bedrock's multi-agent collaboration patterns inform Loki Mode's routing and dispatch strategies.
+
+| Paper/Resource | Contribution to Loki Mode |
+|----------------|---------------------------|
+| [Multi-Agent Orchestration Guidance](https://aws.amazon.com/solutions/guidance/multi-agent-orchestration-on-aws/) | Three coordination mechanisms, architectural patterns |
+| [Bedrock Multi-Agent Collaboration](https://docs.aws.amazon.com/bedrock/latest/userguide/agents-multi-agent-collaboration.html) | Supervisor mode, routing mode, 10-agent limit |
+| [Multi-Agent Collaboration Announcement](https://aws.amazon.com/blogs/aws/introducing-multi-agent-collaboration-capability-for-amazon-bedrock/) | Intent classification, selective context sharing |
+| [AgentCore for SRE](https://aws.amazon.com/blogs/machine-learning/build-multi-agent-site-reliability-engineering-assistants-with-amazon-bedrock-agentcore/) | Gateway, Memory, Identity, Observability components |
+
+**Key Pattern Adopted:** Routing Mode Optimization - Direct dispatch for simple tasks (lower latency), supervisor orchestration for complex tasks (full coordination).
+
 ---
 
 ## Academic Research

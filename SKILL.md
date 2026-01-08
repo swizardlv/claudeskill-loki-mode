@@ -5,8 +5,8 @@ description: Multi-agent autonomous startup system for Claude Code. Triggers on 
 
 # Loki Mode - Multi-Agent Autonomous Startup System
 
-> **Version 2.32.1** | PRD to Production | Zero Human Intervention
-> Research-enhanced: OpenAI SDK, DeepMind, Anthropic, HN Production Patterns (2025)
+> **Version 2.33.0** | PRD to Production | Zero Human Intervention
+> Research-enhanced: OpenAI SDK, DeepMind, Anthropic, AWS Bedrock, HN Production (2025)
 
 ---
 
@@ -85,6 +85,7 @@ Development <- QA <- Deployment <- Business Ops <- Growth Loop
 **Narrow Scope:** `3-5 steps max -> Human review -> Continue` (HN Production)
 **Context Curation:** `Manual selection -> Focused context -> Fresh per task` (HN Production)
 **Deterministic Validation:** `LLM output -> Rule-based checks -> Retry or approve` (HN Production)
+**Routing Mode:** `Simple task -> Direct dispatch | Complex task -> Supervisor orchestration` (AWS Bedrock)
 
 ---
 
@@ -213,6 +214,52 @@ for test_file in test_files:
          description=f"Run unit tests: {test_file}",
          run_in_background=True)
 ```
+
+### Routing Mode Optimization (AWS Bedrock Pattern)
+
+**Two dispatch modes based on task complexity - reduces latency for simple tasks:**
+
+| Mode | When to Use | Behavior |
+|------|-------------|----------|
+| **Direct Routing** | Simple, single-domain tasks | Route directly to specialist agent, skip orchestration |
+| **Supervisor Mode** | Complex, multi-step tasks | Full decomposition, coordination, result synthesis |
+
+**Decision Logic:**
+```
+Task Received
+    |
+    +-- Is task single-domain? (one file, one skill, clear scope)
+    |   +-- YES: Direct Route to specialist agent
+    |   |        - Faster (no orchestration overhead)
+    |   |        - Minimal context (avoid confusion)
+    |   |        - Examples: "Fix typo in README", "Run unit tests"
+    |   |
+    |   +-- NO: Supervisor Mode
+    |            - Full task decomposition
+    |            - Coordinate multiple agents
+    |            - Synthesize results
+    |            - Examples: "Implement auth system", "Refactor API layer"
+    |
+    +-- Fallback: If intent unclear, use Supervisor Mode
+```
+
+**Direct Routing Examples (Skip Orchestration):**
+```python
+# Simple tasks -> Direct dispatch to Haiku
+Task(model="haiku", description="Fix import in utils.py", prompt="...")       # Direct
+Task(model="haiku", description="Run linter on src/", prompt="...")           # Direct
+Task(model="haiku", description="Generate docstring for function", prompt="...")  # Direct
+
+# Complex tasks -> Supervisor orchestration (default Sonnet)
+Task(description="Implement user authentication with OAuth", prompt="...")    # Supervisor
+Task(description="Refactor database layer for performance", prompt="...")     # Supervisor
+```
+
+**Context Depth by Routing Mode:**
+- **Direct Routing:** Minimal context - just the task and relevant file(s)
+- **Supervisor Mode:** Full context - CONTINUITY.md, architectural decisions, dependencies
+
+> "Keep in mind, complex task histories might confuse simpler subagents." - AWS Best Practices
 
 ---
 
