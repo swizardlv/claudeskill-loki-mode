@@ -5,7 +5,7 @@ description: Multi-agent autonomous startup system for Claude Code. Triggers on 
 
 # Loki Mode - Multi-Agent Autonomous Startup System
 
-> **Version 2.35.0** | PRD to Production | Zero Human Intervention
+> **Version 2.36.2** | PRD to Production | Zero Human Intervention
 > Research-enhanced: OpenAI SDK, DeepMind, Anthropic, AWS Bedrock, Agent SDK, HN Production (2025)
 
 ---
@@ -648,6 +648,42 @@ context_budget:
   reserve: "90% for model reasoning"
 ```
 
+### Proactive Context Management (OpenCode Pattern)
+
+**Prevent context overflow in long autonomous sessions:**
+
+```yaml
+compaction_strategy:
+  trigger: "Every 25 iterations OR context feels heavy"
+
+  preserve_always:
+    - CONTINUITY.md content (current state)
+    - Current task specification
+    - Recent Mistakes & Learnings (last 5)
+    - Active queue items
+
+  consolidate:
+    - Old tool outputs -> summary in CONTINUITY.md
+    - Verbose file reads -> key findings only
+    - Debugging attempts -> learnings extracted
+
+  signal: ".loki/signals/CONTEXT_CLEAR_REQUESTED"
+  result: "Wrapper resets context, injects ledger state"
+```
+
+**When to request context reset:**
+1. After 25+ iterations without reset
+2. Multiple large file reads in session
+3. Extensive debugging with many retries
+4. Before starting new SDLC phase
+
+**How to reset safely:**
+1. Update CONTINUITY.md with current state
+2. Extract any learnings to `.loki/memory/learnings/`
+3. Save ledger at `.loki/memory/ledgers/LEDGER-orchestrator.md`
+4. Create `.loki/signals/CONTEXT_CLEAR_REQUESTED`
+5. Wrapper handles reset and re-injects essential state
+
 ### Sub-Agents for Context Isolation
 
 **Use sub-agents to prevent token waste on noisy subtasks:**
@@ -750,4 +786,4 @@ Detailed documentation is split into reference files for progressive loading:
 
 ---
 
-**Version:** 2.36.0 | **Lines:** ~750 | **Research-Enhanced: 2026 Cutting-Edge Patterns (arXiv, HN, Labs)**
+**Version:** 2.36.2 | **Lines:** ~780 | **Research-Enhanced: 2026 Cutting-Edge Patterns (arXiv, HN, Labs, OpenCode)**

@@ -5,6 +5,60 @@ All notable changes to Loki Mode will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.36.2] - 2026-01-15
+
+### Added - OpenCode Comparison and Proactive Context Management
+
+**Deep comparison with OpenCode (70.9k stars) validated by Opus feedback loop.**
+
+#### OpenCode Features Analyzed
+
+| Feature | OpenCode | Loki Mode | Assessment |
+|---------|----------|-----------|------------|
+| Architecture | Client/server (Bun+Go) | CLI skill (bash) | Different design goals |
+| Provider Support | Multi-provider | Claude-only | Intentional for deep integration |
+| LSP Integration | Native (25+ langs) | None | Not adopted (violates deterministic validation) |
+| Agents | 4 built-in | 37 in 7 swarms | Loki Mode more comprehensive |
+| Plugin System | JS/TS hooks | Wrapper script | Not adopted (adds complexity) |
+| Skills | SKILL.md compatible | IS a SKILL.md | Aligned |
+| Quality Gates | Basic permissions | 7 gates + 3-reviewer + devil's advocate | Loki Mode superior |
+| Memory | Session-based | Episodic/Semantic/Procedural | Loki Mode more sophisticated |
+
+#### Patterns Evaluated and NOT Adopted
+
+| Pattern | Source | Why Not Adopted |
+|---------|--------|-----------------|
+| LSP Integration | OpenCode native | Violates deterministic validation principle |
+| Plugin/Hook System | OpenCode plugins | Adds complexity for human extensibility |
+| Multi-Provider | OpenCode design | Breaks Claude-specific optimizations |
+| Todo Continuation Enforcer | Oh-My-OpenCode | Already have superior wrapper enforcement |
+
+#### Pattern ADOPTED: Proactive Context Management
+
+**From Oh-My-OpenCode/Sisyphus pattern, validated by Opus:**
+
+- Added `LOKI_COMPACTION_INTERVAL` env var (default: 25 iterations)
+- Proactive compaction reminder injected into prompt every N iterations
+- New "Proactive Context Management" section in SKILL.md
+- Guidance on when/how to request context reset safely
+
+```bash
+# New environment variable
+LOKI_COMPACTION_INTERVAL=25  # Suggest compaction every N iterations
+```
+
+#### Validation Process
+
+1. Deep analysis of OpenCode docs, architecture, and Oh-My-OpenCode
+2. Opus feedback loop for critical evaluation
+3. Determined most OpenCode patterns are for interactive use (human-in-loop)
+4. Loki Mode's autonomous patterns are architecturally superior for its use case
+5. Only proactive compaction adopted as genuinely beneficial
+
+**See `docs/COMPARISON.md` for full competitive analysis.**
+
+---
+
 ## [2.36.1] - 2026-01-14
 
 ### Validated - Comprehensive Multi-Agent Research Audit
