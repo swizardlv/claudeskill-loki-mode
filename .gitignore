@@ -11,3 +11,6 @@ node_modules/
 # Build outputs
 dist/
 *.vsix
+
+# Local development (not tracked)
+the_app/
