@@ -5,6 +5,66 @@ All notable changes to Loki Mode will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.36.1] - 2026-01-14
+
+### Validated - Comprehensive Multi-Agent Research Audit
+
+**100+ papers from Swarms Awesome Multi-Agent Papers list analyzed.**
+
+#### Audit Outcome: ARCHITECTURE VALIDATED
+
+Loki Mode already implements patterns from state-of-the-art research. Key papers validate our design choices:
+
+| Paper | Key Finding | Loki Mode Status |
+|-------|-------------|------------------|
+| **Scaling Agent Systems** | Centralized +80.8% on parallelizable tasks | HAVE: Centralized orchestrator |
+| **Scaling Agent Systems** | Sequential reasoning degrades 39-70% | HAVE: Parallel blind review |
+| **Scaling Agent Systems** | Capability saturation at ~45% baseline | HAVE: Model tiering (Opus/Sonnet/Haiku) |
+| **Talk Isn't Always Cheap** | Debate can decrease accuracy (sycophancy) | HAVE: Blind review + devil's advocate |
+| **More Agents is All You Need** | Voting scales with task difficulty | HAVE: 3-reviewer voting system |
+| **MALT** | Generation-verification-refinement | HAVE: RARV cycle |
+| **MetaGPT/ChatDev** | SOPs prevent hallucination cascades | HAVE: SDLC phases with procedures |
+| **TUMIX** | Confidence-based routing | HAVE: v2.36.0 confidence routing |
+| **AutoSafeCoder** | Multi-agent security review | HAVE: Security agent + static analysis |
+
+#### Patterns Confirmed Present
+
+1. Multi-agent voting (3 reviewers + devil's advocate) - MoA, More Agents
+2. Anti-sycophancy (blind review) - CONSENSAGENT
+3. Centralized orchestration - Scaling Agent Systems validation
+4. RARV cycle - MALT generation-verification-refinement
+5. 37 specialized agents - CAMEL role-playing (more comprehensive)
+6. SOPs in phases - ChatDev/MetaGPT
+7. Confidence routing - TUMIX
+8. Memory system (episodic/semantic) - A-Mem
+9. Security agents - AutoSafeCoder
+10. Efficiency metrics - ToolOrchestra
+
+#### Additions Evaluated and Rejected
+
+| Pattern | Source | Why Rejected |
+|---------|--------|--------------|
+| Layered output aggregation | MoA | Sequential degrades 39-70% (Scaling paper) |
+| MCTS workflow optimization | AFlow/Optima | Over-engineering for CLI skill |
+| Evolutionary agent generation | EvoAgent | Requires training infrastructure |
+| K-Level strategic reasoning | K-R paper | Specialized for adversarial scenarios |
+
+#### Key Papers Analyzed
+
+**Core Multi-Agent**: Mixture-of-Agents, More Agents is All You Need, AutoGen, CAMEL, Chain of Agents, EvoAgent, Internet of Agents, Optima, SwarmAgentic, Federation of Agents
+
+**Frameworks**: MetaGPT, ChatDev, AgentScope, AIOS, Symphony, AgentGym
+
+**Optimization**: Optima, TUMIX, AFlow, Scaling Agent Systems, LLM Cascades
+
+**Failure Analysis**: "Why Multi-Agent Systems Fail?", "Talk Isn't Always Cheap", Lazy Agents
+
+**Software Engineering**: ChatDev, MAGIS, CodeR, AutoSafeCoder, Self-Organized Agents
+
+**Full analysis**: `/tmp/loki-research-context.md`
+
+---
+
 ## [2.36.0] - 2026-01-14
 
 ### Added - 2026 Research Enhancements
