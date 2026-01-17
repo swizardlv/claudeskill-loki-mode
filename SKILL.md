@@ -5,7 +5,7 @@ description: Multi-agent autonomous startup system for Claude Code. Triggers on 
 
 # Loki Mode - Multi-Agent Autonomous Startup System
 
-> **Version 2.36.8** | PRD to Production | Zero Human Intervention
+> **Version 2.36.10** | PRD to Production | Zero Human Intervention
 > Research-enhanced: OpenAI SDK, DeepMind, Anthropic, AWS Bedrock, Agent SDK, HN Production (2025)
 
 ---
@@ -69,7 +69,9 @@ Development <- QA <- Deployment <- Business Ops <- Growth Loop
 
 ### Essential Patterns
 
+**Simplicity First:** Start simple. Only escalate complexity when simpler approaches fail. 37 agents available, but most tasks need 1-3. (Anthropic)
 **Spec-First:** `OpenAPI -> Tests -> Code -> Validate`
+**TDD Workflow:** `Write failing tests -> Implement to pass -> Refactor` (Anthropic - preferred for new features)
 **Code Review:** `Blind Review (parallel) -> Debate (if disagree) -> Devil's Advocate -> Merge`
 **Guardrails:** `Input Guard (BLOCK) -> Execute -> Output Guard (VALIDATE)` (OpenAI SDK)
 **Tripwires:** `Validation fails -> Halt execution -> Escalate or retry`
@@ -215,6 +217,36 @@ for test_file in test_files:
          run_in_background=True)
 ```
 
+### Extended Thinking Mode (Anthropic Best Practice)
+
+**Use thinking prefixes for complex planning - triggers deeper reasoning without extra tokens.**
+
+| Prefix | When to Use | Example |
+|--------|-------------|---------|
+| `"think"` | Standard planning | Architecture outlines, feature scoping |
+| `"think hard"` | Complex decisions | System design, trade-off analysis |
+| `"ultrathink"` | Critical/ambiguous | Multi-service architecture, security design |
+
+```python
+# Planning phase - use thinking prefix in prompt
+Task(
+    subagent_type="Plan",
+    model="opus",
+    description="Design auth architecture",
+    prompt="think hard about the authentication architecture. Consider OAuth vs JWT, session management, and security implications..."
+)
+```
+
+**When to use:**
+- Discovery phase: "think" for requirement analysis
+- Architecture phase: "think hard" for system design
+- Critical decisions: "ultrathink" for security, data architecture
+
+**When NOT to use:**
+- Haiku tasks (simple operations)
+- Repetitive/templated work
+- Obvious implementations
+
 ### Prompt Repetition for Haiku (2026 Research - arXiv 2512.14982v1)
 
 **For Haiku agents on structured tasks, repeat prompts 2x to improve accuracy 4-5x with zero latency cost.**
@@ -341,6 +373,44 @@ mcp_servers = {
 > "Claude mostly did well at verifying features end-to-end once explicitly prompted to use browser automation tools." - Anthropic Engineering
 
 **Note:** Playwright cannot detect browser-native alert modals. Use custom UI for confirmations.
+
+### Visual Design Input (Anthropic Best Practice)
+
+**Claude excels with visual context - provide screenshots, mockups, and diagrams for concrete targets.**
+
+```yaml
+visual_design_workflow:
+  when: "Discovery or Development phase when UI is involved"
+
+  inputs:
+    - Design mockups (Figma exports, screenshots)
+    - Wireframes (low-fidelity sketches)
+    - Reference screenshots (competitor UIs, existing app states)
+    - Architecture diagrams (Mermaid, draw.io exports)
+
+  usage:
+    discovery_phase:
+      - "Analyze this design mockup and extract components needed"
+      - "Compare these 3 competitor screenshots - identify common patterns"
+
+    development_phase:
+      - "Implement this exact layout from the mockup"
+      - "Match the spacing and typography from this reference"
+
+    verification:
+      - "Compare screenshot of implementation vs design mockup"
+      - "Identify visual differences requiring fixes"
+
+  how_to_provide:
+    - Drag-drop images into Claude prompt
+    - Reference image paths: "See design at designs/homepage.png"
+    - Base64 inline for automated workflows
+```
+
+**Why this improves outcomes:**
+- Reduces ambiguity (visual > verbal for UI)
+- Enables pixel-level accuracy matching
+- Combines with Playwright for visual regression testing
 
 ---
 
@@ -1211,4 +1281,4 @@ Detailed documentation is split into reference files for progressive loading:
 
 ---
 
-**Version:** 2.36.8 | **Lines:** ~1150 | **Research-Enhanced: 2026 Patterns (arXiv, HN, Labs, OpenCode, Cursor, Devin, Codex, Kiro, Antigravity, Amazon Q, RLM, Zencoder)**
+**Version:** 2.36.10 | **Lines:** ~1220 | **Research-Enhanced: 2026 Patterns (arXiv, HN, Labs, OpenCode, Cursor, Devin, Codex, Kiro, Antigravity, Amazon Q, RLM, Zencoder, Anthropic Best Practices)**

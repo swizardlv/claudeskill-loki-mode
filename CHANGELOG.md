@@ -5,6 +5,52 @@ All notable changes to Loki Mode will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.36.10] - 2026-01-17
+
+### Added - Anthropic Best Practices Integration
+
+**Validated SKILL.md against Anthropic's official guidance and added genuine improvements.**
+
+#### Research Sources Analyzed
+
+| Source | Key Findings |
+|--------|--------------|
+| [Building Effective Agents](https://www.anthropic.com/engineering/building-effective-agents) | 5 workflow patterns, simplicity emphasis |
+| [Claude Code Best Practices](https://www.anthropic.com/engineering/claude-code-best-practices) | Explore-Plan-Code, thinking modes, TDD |
+| [Enterprise AI Transformation](https://claude.com/blog/driving-ai-transformation-with-claude) | Bottleneck targeting, quality focus |
+
+#### Improvements Made
+
+1. **Simplicity First Principle** (Essential Patterns)
+   - Added: "Start simple. Only escalate complexity when simpler approaches fail."
+   - Rationale: Anthropic emphasizes "most successful implementations use simple, composable patterns"
+
+2. **TDD Workflow** (Essential Patterns)
+   - Added: `Write failing tests -> Implement to pass -> Refactor`
+   - Rationale: Anthropic recommends test-first development as primary workflow
+
+3. **Extended Thinking Mode** (New Section)
+   - Added guidance for "think", "think hard", "ultrathink" prefixes
+   - When to use for Discovery, Architecture, and critical decisions
+   - When NOT to use (Haiku tasks, obvious implementations)
+
+4. **Visual Design Input** (New Section)
+   - Added workflow for consuming design mockups and screenshots
+   - Integration with Discovery and Development phases
+   - Combines with Playwright for visual regression
+
+#### Already Aligned (Validated)
+
+These patterns were already correctly implemented:
+- Explore-Plan-Code workflow
+- Confidence-based routing
+- Parallelization with Haiku
+- Multi-Claude workflows with git worktrees
+- Context management and proactive compaction
+- One Feature at a Time rule
+
+---
+
 ## [2.36.9] - 2026-01-17
 
 ### Added - MCP Integration Reference with Parallel AI
