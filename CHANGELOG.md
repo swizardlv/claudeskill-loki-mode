@@ -30,8 +30,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Test Coverage**: Added comprehensive test suite `tests/test-vibe-kanban-export.sh` with 6 test cases covering:
   - Dict payload handling with action/description/command fields
   - String payload handling with fallback to 'Task' title
-  - Priority mapping (high ≥8, medium ≥5, low <5)
-  - Status mapping (pending→todo, in-progress→doing, completed→done, failed→blocked)
+  - Priority mapping (high >=8, medium >=5, low <5)
+  - Status mapping (pending->todo, in-progress->doing, completed->done, failed->blocked)
   - Summary file creation with current phase
   - Missing orchestrator.json warning display
 

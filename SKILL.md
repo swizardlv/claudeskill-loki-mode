@@ -18,7 +18,7 @@ description: Multi-agent autonomous startup system for Claude Code. Triggers on 
 3. **CHECK** `.loki/state/orchestrator.json` - Current phase/metrics
 4. **REVIEW** `.loki/queue/pending.json` - Next tasks
 5. **FOLLOW** RARV cycle: REASON, ACT, REFLECT, **VERIFY** (test your work!)
-6. **OPTIMIZE** Opus=planning, Sonnet=development, Haiku=unit tests/monitoring - 10+ Haiku agents in parallel
+6. **OPTIMIZE** Opus=Bootstrap/Discovery/Architecture/Development, Sonnet=QA/Deployment, Haiku=rest (parallel)
 7. **TRACK** Efficiency metrics: tokens, time, agent count per task
 8. **CONSOLIDATE** After task: Update episodic memory, extract patterns to semantic memory
 
@@ -69,7 +69,10 @@ Development <- QA <- Deployment <- Business Ops <- Growth Loop
 
 ### Essential Patterns
 
+**Simplicity First:** Start simple. Only escalate complexity when simpler approaches fail. 37 agents available, but most tasks need 1-3. (Anthropic)
+**Quality Over Velocity:** Velocity gains are TRANSIENT, quality degradation is PERSISTENT. Never sacrifice quality for speed. (arXiv 2511.04427v2)
 **Spec-First:** `OpenAPI -> Tests -> Code -> Validate`
+**TDD Workflow:** `Write failing tests -> Implement to pass -> Refactor` (Anthropic - preferred for new features)
 **Code Review:** `Blind Review (parallel) -> Debate (if disagree) -> Devil's Advocate -> Merge`
 **Guardrails:** `Input Guard (BLOCK) -> Execute -> Output Guard (VALIDATE)` (OpenAI SDK)
 **Tripwires:** `Validation fails -> Halt execution -> Escalate or retry`
@@ -87,6 +90,10 @@ Development <- QA <- Deployment <- Business Ops <- Growth Loop
 **Deterministic Validation:** `LLM output -> Rule-based checks -> Retry or approve` (HN Production)
 **Routing Mode:** `Simple task -> Direct dispatch | Complex task -> Supervisor orchestration` (AWS Bedrock)
 **E2E Browser Testing:** `Playwright MCP -> Automate browser -> Verify UI features visually` (Anthropic Harness)
+**Problem Classification:** `Classify problem type -> Apply domain expert hints -> Generate solution` (OptiMind)
+**Ensemble Solutions:** `Generate multiple solutions -> Select by consensus or feedback` (OptiMind)
+**Idempotent Operations:** All operations safe under retry. Use Kubernetes-style reconciliation. (k8s-valkey-operator)
+**Formal State Machines:** Explicit phase transitions with defined states. No ambiguous states. (k8s-valkey-operator)
 
 ---
 
@@ -162,44 +169,42 @@ If bugs are found in these files, document them in `.loki/CONTINUITY.md` under "
 
 ## Model Selection Strategy
 
-**CRITICAL: Use the right model for each task type. Opus is ONLY for planning/architecture.**
+**CRITICAL: Use the right model for each SDLC phase.**
 
-| Model | Use For | Examples |
-|-------|---------|----------|
-| **Opus 4.5** | PLANNING ONLY - Architecture & high-level decisions | System design, architecture decisions, planning, security audits |
-| **Sonnet 4.5** | DEVELOPMENT - Implementation & functional testing | Feature implementation, API endpoints, bug fixes, integration/E2E tests |
-| **Haiku 4.5** | OPERATIONS - Simple tasks & monitoring | Unit tests, docs, bash commands, linting, monitoring, file operations |
+| Model | SDLC Phases | Examples |
+|-------|-------------|----------|
+| **Opus 4.5** | Bootstrap, Discovery, Architecture, Development | PRD analysis, system design, architecture decisions, feature implementation, API endpoints, complex bug fixes |
+| **Sonnet 4.5** | QA, Deployment | Integration/E2E tests, security scanning, performance testing, deployment automation, release management |
+| **Haiku 4.5** | All other operations (in parallel) | Unit tests, docs, bash commands, linting, monitoring, file operations, health checks |
 
 ### Task Tool Model Parameter
 ```python
-# Opus for planning/architecture ONLY
+# Opus for Bootstrap, Discovery, Architecture, Development phases
 Task(subagent_type="Plan", model="opus", description="Design system architecture", prompt="...")
+Task(subagent_type="general-purpose", model="opus", description="Implement API endpoint", prompt="...")
+Task(subagent_type="general-purpose", model="opus", description="Analyze PRD requirements", prompt="...")
 
-# Sonnet for development and functional testing
-Task(subagent_type="general-purpose", description="Implement API endpoint", prompt="...")
-Task(subagent_type="general-purpose", description="Write integration tests", prompt="...")
+# Sonnet for QA and Deployment phases
+Task(subagent_type="general-purpose", model="sonnet", description="Write integration tests", prompt="...")
+Task(subagent_type="general-purpose", model="sonnet", description="Run E2E test suite", prompt="...")
+Task(subagent_type="general-purpose", model="sonnet", description="Deploy to production", prompt="...")
 
-# Haiku for unit tests, monitoring, and simple tasks (PREFER THIS for speed)
+# Haiku for everything else (PREFER THIS for parallelization)
 Task(subagent_type="general-purpose", model="haiku", description="Run unit tests", prompt="...")
 Task(subagent_type="general-purpose", model="haiku", description="Check service health", prompt="...")
 ```
 
-### Opus Task Categories (RESTRICTED - Planning Only)
-- System architecture design
-- High-level planning and strategy
-- Security audits and threat modeling
-- Major refactoring decisions
-- Technology selection
+### Opus Task Categories (Bootstrap -> Development)
+- **Bootstrap**: Project setup, dependency analysis, environment configuration
+- **Discovery**: PRD analysis, requirement extraction, gap identification
+- **Architecture**: System design, technology selection, schema design, API contracts
+- **Development**: Feature implementation, API endpoints, complex bug fixes, database migrations, code refactoring
 
-### Sonnet Task Categories (Development)
-- Feature implementation
-- API endpoint development
-- Bug fixes (non-trivial)
-- Integration tests and E2E tests
-- Code refactoring
-- Database migrations
+### Sonnet Task Categories (QA -> Deployment)
+- **QA**: Integration tests, E2E tests, security scanning, performance testing, accessibility testing
+- **Deployment**: Release automation, infrastructure provisioning, monitoring setup, rollback procedures
 
-### Haiku Task Categories (Operations - Use Extensively)
+### Haiku Task Categories (Operations - Use Extensively in Parallel)
 - Writing/running unit tests
 - Generating documentation
 - Running bash commands (npm install, git operations)
@@ -216,6 +221,36 @@ for test_file in test_files:
          description=f"Run unit tests: {test_file}",
          run_in_background=True)
 ```
+
+### Extended Thinking Mode (Anthropic Best Practice)
+
+**Use thinking prefixes for complex planning - triggers deeper reasoning without extra tokens.**
+
+| Prefix | When to Use | Example |
+|--------|-------------|---------|
+| `"think"` | Standard planning | Architecture outlines, feature scoping |
+| `"think hard"` | Complex decisions | System design, trade-off analysis |
+| `"ultrathink"` | Critical/ambiguous | Multi-service architecture, security design |
+
+```python
+# Planning phase - use thinking prefix in prompt
+Task(
+    subagent_type="Plan",
+    model="opus",
+    description="Design auth architecture",
+    prompt="think hard about the authentication architecture. Consider OAuth vs JWT, session management, and security implications..."
+)
+```
+
+**When to use:**
+- Discovery phase: "think" for requirement analysis
+- Architecture phase: "think hard" for system design
+- Critical decisions: "ultrathink" for security, data architecture
+
+**When NOT to use:**
+- Haiku tasks (simple operations)
+- Repetitive/templated work
+- Obvious implementations
 
 ### Prompt Repetition for Haiku (2026 Research - arXiv 2512.14982v1)
 
@@ -318,6 +353,174 @@ Task(description="Refactor database layer for performance", prompt="...")     # 
 
 > "Keep in mind, complex task histories might confuse simpler subagents." - AWS Best Practices
 
+### Problem Classification with Expert Hints (OptiMind Pattern)
+
+**Classify problems before solving. Apply domain-specific expert hints to reduce errors.**
+
+```yaml
+problem_classification:
+  purpose: "Categorize task -> Apply relevant expertise -> Generate solution"
+
+  categories:
+    crud_operations:
+      hints:
+        - "Check for existing similar endpoints before creating new"
+        - "Ensure proper input validation and error handling"
+        - "Follow RESTful conventions for HTTP methods"
+      common_errors: ["Missing validation", "Inconsistent naming", "N+1 queries"]
+
+    authentication:
+      hints:
+        - "Never store plaintext passwords"
+        - "Use secure session management"
+        - "Implement rate limiting on auth endpoints"
+      common_errors: ["Weak hashing", "Session fixation", "Missing CSRF"]
+
+    database_operations:
+      hints:
+        - "Always use parameterized queries"
+        - "Add appropriate indexes for queries"
+        - "Consider transaction boundaries"
+      common_errors: ["SQL injection", "Missing migrations", "Deadlocks"]
+
+    frontend_components:
+      hints:
+        - "Ensure accessibility (ARIA labels, keyboard navigation)"
+        - "Handle loading and error states"
+        - "Prevent XSS in user inputs"
+      common_errors: ["Missing error boundaries", "Memory leaks", "Prop drilling"]
+
+    infrastructure:
+      hints:
+        - "Use environment variables for configuration"
+        - "Implement health checks"
+        - "Plan for horizontal scaling"
+      common_errors: ["Hardcoded secrets", "Missing monitoring", "Single points of failure"]
+
+  workflow:
+    1. Classify incoming task into category
+    2. Load relevant hints from category
+    3. Include hints in agent prompt
+    4. Generate solution
+    5. Verify against common_errors list
+```
+
+**Research source:** [OptiMind (Microsoft Research)](https://www.microsoft.com/en-us/research/blog/optimind-a-small-language-model-with-optimization-expertise/)
+
+### Ensemble Solution Generation (OptiMind Pattern)
+
+**For critical decisions, generate multiple solutions and select by consensus.**
+
+```python
+# For critical tasks, use ensemble approach
+def solve_critical_task(task):
+    solutions = []
+
+    # Generate 3 independent solutions
+    for i in range(3):
+        solution = Task(
+            model="opus",
+            description=f"Solution attempt {i+1}",
+            prompt=f"Solve: {task}. This is attempt {i+1} of 3. Be thorough."
+        )
+        solutions.append(solution)
+
+    # Select by consensus or use feedback
+    if all_solutions_agree(solutions):
+        return solutions[0]  # Consensus
+    else:
+        # Use debate to resolve disagreement
+        return resolve_via_debate(solutions)
+```
+
+**When to use ensemble:**
+- Architecture decisions
+- Security-sensitive code
+- Database schema design
+- API contract changes
+
+**When NOT to use:**
+- Simple CRUD operations
+- Bug fixes with clear solution
+- Documentation updates
+
+### Formal State Machines (k8s-valkey-operator Pattern)
+
+**Define explicit state transitions. No ambiguous states allowed.**
+
+```yaml
+phase_state_machine:
+  states:
+    - bootstrap
+    - discovery
+    - architecture
+    - infrastructure
+    - development
+    - qa
+    - deployment
+    - business_ops
+    - growth_loop
+    - completed
+    - failed
+
+  transitions:
+    bootstrap:
+      success: discovery
+      failure: failed
+    discovery:
+      success: architecture
+      failure: bootstrap  # Retry with more context
+    architecture:
+      success: infrastructure
+      failure: discovery   # Need more requirements
+    infrastructure:
+      success: development
+      failure: architecture  # Design issue
+    development:
+      success: qa
+      failure: development  # Retry current feature
+    qa:
+      success: deployment
+      failure: development  # Fix and re-test
+    deployment:
+      success: business_ops
+      failure: qa  # Rollback and investigate
+    business_ops:
+      success: growth_loop
+      failure: deployment  # Re-deploy with fixes
+    growth_loop:
+      success: growth_loop  # Continuous
+      failure: business_ops
+
+  invariants:
+    - "Only one active state at a time"
+    - "All transitions logged to CONTINUITY.md"
+    - "Failed state requires explicit recovery action"
+    - "State changes trigger phase artifacts"
+```
+
+**Idempotent Operations:**
+```python
+# All operations must be safe to retry
+def safe_operation(task):
+    # Check if already completed
+    if task_already_done(task):
+        return existing_result(task)
+
+    # Create checkpoint before operation
+    checkpoint = create_checkpoint()
+
+    try:
+        result = execute_task(task)
+        mark_task_complete(task, result)
+        return result
+    except Exception as e:
+        restore_checkpoint(checkpoint)
+        raise
+```
+
+**Research source:** [k8s-valkey-operator](https://github.com/smoketurner/k8s-valkey-operator)
+
 ### E2E Testing with Playwright MCP (Anthropic Harness Pattern)
 
 **Critical:** Features are NOT complete until verified via browser automation.
@@ -344,6 +547,44 @@ mcp_servers = {
 
 **Note:** Playwright cannot detect browser-native alert modals. Use custom UI for confirmations.
 
+### Visual Design Input (Anthropic Best Practice)
+
+**Claude excels with visual context - provide screenshots, mockups, and diagrams for concrete targets.**
+
+```yaml
+visual_design_workflow:
+  when: "Discovery or Development phase when UI is involved"
+
+  inputs:
+    - Design mockups (Figma exports, screenshots)
+    - Wireframes (low-fidelity sketches)
+    - Reference screenshots (competitor UIs, existing app states)
+    - Architecture diagrams (Mermaid, draw.io exports)
+
+  usage:
+    discovery_phase:
+      - "Analyze this design mockup and extract components needed"
+      - "Compare these 3 competitor screenshots - identify common patterns"
+
+    development_phase:
+      - "Implement this exact layout from the mockup"
+      - "Match the spacing and typography from this reference"
+
+    verification:
+      - "Compare screenshot of implementation vs design mockup"
+      - "Identify visual differences requiring fixes"
+
+  how_to_provide:
+    - Drag-drop images into Claude prompt
+    - Reference image paths: "See design at designs/homepage.png"
+    - Base64 inline for automated workflows
+```
+
+**Why this improves outcomes:**
+- Reduces ambiguity (visual > verbal for UI)
+- Enables pixel-level accuracy matching
+- Combines with Playwright for visual regression testing
+
 ---
 
 ## Tool Orchestration & Efficiency
@@ -369,13 +610,13 @@ PREFERENCE REWARD: Inferred from user actions (commit/revert/edit)
 
 ### Dynamic Agent Selection by Complexity
 
-| Complexity | Max Agents | Planning | Development | Testing | Review |
-|------------|------------|----------|-------------|---------|--------|
-| Trivial | 1 | - | haiku | haiku | skip |
-| Simple | 2 | - | haiku | haiku | single |
-| Moderate | 4 | sonnet | sonnet | haiku | standard (3 parallel) |
+| Complexity | Max Agents | Bootstrap/Discovery/Arch/Dev | QA/Deployment | Operations | Review |
+|------------|------------|------------------------------|---------------|------------|--------|
+| Trivial | 1 | haiku | haiku | haiku | skip |
+| Simple | 2 | opus | sonnet | haiku | single |
+| Moderate | 4 | opus | sonnet | haiku | standard (3 parallel) |
 | Complex | 8 | opus | sonnet | haiku | deep (+ devil's advocate) |
-| Critical | 12 | opus | sonnet | sonnet | exhaustive + human checkpoint |
+| Critical | 12 | opus | sonnet | haiku | exhaustive + human checkpoint |
 
 See `references/tool-orchestration.md` for full implementation details.
 
@@ -555,6 +796,66 @@ artifact_generation:
 **OpenAI insight:** "Layered defense - multiple specialized guardrails create resilient agents."
 
 See `references/quality-control.md` and `references/openai-patterns.md` for details.
+
+---
+
+## Velocity-Quality Feedback Loop (CRITICAL)
+
+**Research from arXiv 2511.04427v2 - empirical study of 807 repositories with LLM agent assistants.**
+
+### Key Findings
+
+| Metric | Finding | Implication |
+|--------|---------|-------------|
+| Initial Velocity | +281% lines added | Impressive but TRANSIENT |
+| Quality Degradation | +30% static warnings, +41% complexity | PERSISTENT problem |
+| Cancellation Point | 3.28x complexity OR 4.94x warnings | Completely negates velocity gains |
+
+### The Trap to Avoid
+
+```
+Initial excitement -> Velocity spike -> Quality degradation accumulates
+                                               |
+                                               v
+                               Complexity cancels velocity gains
+                                               |
+                                               v
+                               Frustration -> Abandonment cycle
+```
+
+**CRITICAL RULE:** Every velocity gain MUST be accompanied by quality verification.
+
+### Mandatory Quality Checks (Per Task)
+
+```yaml
+velocity_quality_balance:
+  before_commit:
+    - static_analysis: "Run ESLint/Pylint/CodeQL - warnings must not increase"
+    - complexity_check: "Cyclomatic complexity must not increase >10%"
+    - test_coverage: "Coverage must not decrease"
+
+  thresholds:
+    max_new_warnings: 0  # Zero tolerance for new warnings
+    max_complexity_increase: 10%  # Per file, per commit
+    min_coverage: 80%  # Never drop below
+
+  if_threshold_violated:
+    action: "BLOCK commit, fix before proceeding"
+    reason: "Velocity gains without quality are net negative"
+```
+
+### Metrics to Track
+
+```
+.loki/metrics/quality/
++-- warnings.json      # Static analysis warning count over time
++-- complexity.json    # Cyclomatic complexity per file
++-- coverage.json      # Test coverage percentage
++-- velocity.json      # Lines added/commits per hour
++-- ratio.json         # Quality/Velocity ratio (must stay positive)
+```
+
+**Research source:** [Cursor Impact Study (arXiv 2511.04427v2)](https://arxiv.org/html/2511.04427v2)
 
 ---
 
@@ -1010,6 +1311,121 @@ checkpoint_strategy:
 
 ---
 
+## CI/CD Automation Patterns (Zencoder)
+
+**Patterns adopted from Zencoder's 10 Proven Workflow Patterns.**
+
+### CI Failure Analysis and Auto-Resolution
+
+**Problem:** Cryptic CI logs waste developer time; flaky tests cost ~8 minutes per job.
+
+```yaml
+ci_failure_workflow:
+  trigger: "CI pipeline fails"
+
+  steps:
+    1_analyze:
+      - Parse CI logs for error patterns
+      - Classify failure type: regression | flakiness | environment | dependency
+      - Identify affected files and line numbers
+
+    2_diagnose:
+      - regression: "New code broke existing functionality"
+      - flakiness: "Test passes sometimes, fails others (timing, race conditions)"
+      - environment: "CI env differs from local (missing deps, config)"
+      - dependency: "External service/API failure"
+
+    3_resolve:
+      - flakiness: Add retries, fix race conditions, stabilize timing
+      - regression: Revert or fix the breaking change
+      - environment: Update CI config, add missing dependencies
+      - dependency: Add mocks, circuit breakers, or skip temporarily
+
+    4_verify:
+      - Re-run failed tests locally
+      - Push fix and verify CI passes
+      - Update CONTINUITY.md with learning
+
+  success_metrics:
+    - "90% of flaky tests auto-fixed"
+    - "Time-to-green reduced by 50%"
+```
+
+### Automated Review Comment Resolution
+
+**Problem:** PRs stall on minor feedback (validation, tests, error messages).
+
+```yaml
+review_comment_auto_resolution:
+  trigger: "Code review comments received"
+
+  auto_apply_categories:
+    - input_validation: "Add null checks, type guards, range validation"
+    - missing_tests: "Generate unit tests for uncovered code paths"
+    - error_messages: "Improve error message clarity and context"
+    - small_refactoring: "Extract method, rename variable, remove duplication"
+    - documentation: "Add/update JSDoc, docstrings, README sections"
+    - formatting: "Fix indentation, spacing, line length"
+
+  workflow:
+    1. Parse review comments
+    2. Classify into auto-apply vs requires-discussion
+    3. Apply auto-fixable changes
+    4. Commit with message: "fix: address review comments (auto-applied)"
+    5. Request re-review for remaining items
+
+  do_not_auto_apply:
+    - Architecture changes
+    - API contract modifications
+    - Security-sensitive code
+    - Performance-critical sections
+```
+
+### Continuous Dependency Management
+
+**Problem:** Teams delay large dependency upgrades, accumulating upgrade debt.
+
+```yaml
+dependency_management:
+  schedule: "Weekly or bi-weekly"
+
+  workflow:
+    1_scan:
+      - List outdated dependencies (npm outdated, pip list --outdated)
+      - Check for security vulnerabilities (npm audit, safety check)
+      - Prioritize: security > major > minor > patch
+
+    2_update:
+      strategy: "One dependency group at a time"
+      groups:
+        - security_critical: "Update immediately, same day"
+        - major_versions: "One major upgrade per PR"
+        - minor_patches: "Batch similar packages together"
+
+    3_validate:
+      - Run full test suite
+      - Check for breaking changes in CHANGELOG
+      - Summarize release notes in PR description
+
+    4_pr_guidelines:
+      - Keep PRs small (1-3 packages per PR)
+      - Include upgrade rationale
+      - Document any breaking changes handled
+      - Add rollback instructions if needed
+
+  automation:
+    - Create scheduled tasks in .loki/queue/pending.json
+    - Track upgrade history in .loki/memory/semantic/dependencies/
+    - Alert on security vulnerabilities immediately
+```
+
+**Why these patterns matter for autonomous operation:**
+- CI failures are auto-triaged and fixed without human intervention
+- Review cycles are shortened by auto-applying simple changes
+- Dependency debt doesn't accumulate (continuous small updates vs painful migrations)
+
+---
+
 ## Exit Conditions
 
 | Condition | Action |
@@ -1098,4 +1514,4 @@ Detailed documentation is split into reference files for progressive loading:
 
 ---
 
-**Version:** 2.37.0 | **Lines:** ~1050 | **Research-Enhanced: 2026 Patterns (arXiv, HN, Labs, OpenCode, Cursor, Devin, Codex, Kiro, Antigravity, Amazon Q)**
+**Version:** 2.37.0 | **Lines:** ~1350 | **Research-Enhanced: 2026 Patterns (arXiv, HN, Labs, OpenCode, Cursor, Devin, Codex, Kiro, Antigravity, Amazon Q, RLM, Zencoder, Anthropic, OptiMind, k8s-valkey-operator)**
