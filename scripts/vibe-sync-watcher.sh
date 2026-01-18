@@ -55,7 +55,9 @@ echo ""
 
 # Initial export
 log_sync "Running initial export..."
-"$EXPORT_SCRIPT"
+if ! "$EXPORT_SCRIPT"; then
+    log_warn "Initial export failed. Check export script and permissions."
+fi
 echo ""
 
 # Watch loop
@@ -64,7 +66,9 @@ case "$WATCHER" in
         # macOS/BSD
         fswatch -o "$QUEUE_DIR" | while read -r num; do
             log_sync "Queue changed, exporting tasks..."
-            "$EXPORT_SCRIPT"
+            if ! "$EXPORT_SCRIPT"; then
+                log_warn "Export failed. Check export script and permissions."
+            fi
             echo ""
         done
         ;;
@@ -72,9 +76,11 @@ case "$WATCHER" in
     inotifywait)
         # Linux
         while true; do
-            inotifywait -e modify,create,delete "$QUEUE_DIR" 2>/dev/null
+            inotifywait -e close_write,create,delete "$QUEUE_DIR" 2>/dev/null
             log_sync "Queue changed, exporting tasks..."
-            "$EXPORT_SCRIPT"
+            if ! "$EXPORT_SCRIPT"; then
+                log_warn "Export failed. Check export script and permissions."
+            fi
             echo ""
             # Brief delay to avoid duplicate triggers
             sleep 2
@@ -87,11 +93,13 @@ case "$WATCHER" in
         while true; do
             # Calculate hash of all queue files
             if [ -d "$QUEUE_DIR" ]; then
-                CURRENT_HASH=$(find "$QUEUE_DIR" -type f -name "*.json" -exec md5sum {} \; 2>/dev/null | md5sum)
+                CURRENT_HASH=$(find "$QUEUE_DIR" -type f -name "*.json" -print0 2>/dev/null | xargs -0 md5sum 2>/dev/null | md5sum)
 
                 if [ "$CURRENT_HASH" != "$LAST_HASH" ] && [ -n "$LAST_HASH" ]; then
                     log_sync "Queue changed, exporting tasks..."
-                    "$EXPORT_SCRIPT"
+                    if ! "$EXPORT_SCRIPT"; then
+                        log_warn "Export failed. Check export script and permissions."
+                    fi
                     echo ""
                 fi
 
