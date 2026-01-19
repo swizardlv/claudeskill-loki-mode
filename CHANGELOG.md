@@ -5,6 +5,15 @@ All notable changes to Loki Mode will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.1.1] - 2026-01-19
+
+### Fixed
+- Decouple tag and release creation in workflow
+- Create release even if tag was created manually
+- Skip tag creation gracefully if blocked by repo rules
+
+---
+
 ## [3.1.0] - 2026-01-18
 
 ### Added - Batch Processing & Research Integration
