@@ -396,7 +396,7 @@ See [references/agents.md](references/agents.md) for complete agent type definit
 Loki Mode uses a **progressive disclosure architecture** to minimize context usage:
 
 ```
-SKILL.md (~150 lines)         # Always loaded: core RARV cycle, autonomy rules
+SKILL.md (~190 lines)         # Always loaded: core RARV cycle, autonomy rules
 skills/
   00-index.md                  # Module routing table
   agents.md                    # Agent dispatch, A2A patterns

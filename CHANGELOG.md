@@ -5,6 +5,41 @@ All notable changes to Loki Mode will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.2.0] - 2026-01-22
+
+### Added - Foundational Principles and Priority Order
+
+**Minor release: Constitutional improvements inspired by Anthropic's soul spec and production learnings.**
+
+#### Foundational Principles (CONSTITUTION.md)
+Five principles explaining WHY each autonomy rule exists:
+1. **Autonomy Preserves Momentum** - Questions create blocking dependencies; decide and verify instead
+2. **Memory Matters More Than Reasoning** - Context retrieval is the bottleneck, not intelligence
+3. **Verification Builds Trust** - Trust through observable, repeatable evidence, not intentions
+4. **Atomicity Enables Recovery** - Checkpoints allow rollback to known-good states
+5. **Constraints Enable Speed** - Quality gates catch problems when they're cheap to fix
+
+#### Priority Order for Conflict Resolution
+When rules conflict, resolve by hierarchy:
+1. Safety (don't break production)
+2. Correctness (tests pass, specs match)
+3. Quality (reviews passed, maintainable)
+4. Speed (autonomy, parallelization)
+
+#### Memory > Reasoning Insight (memory-system.md)
+Prominent documentation of the core insight: "Your Agent's Reasoning Is Fine - Its Memory Isn't"
+- Production problems solved by better context retrieval, not reasoning
+- Memory architecture is the competitive advantage
+- Episodic-to-semantic consolidation is not optional
+
+#### Research Attribution
+- [Anthropic Claude Constitution](https://www.anthropic.com/news/claude-new-constitution) - principled reasoning over rigid rules
+- [Cursor Scaling Blog](https://cursor.com/blog/scaling-agents) January 2026 - "Your Agent's Reasoning Is Fine - Its Memory Isn't"
+- [GraphRAG Production Engineer](https://www.decodingai.com/p/designing-production-engineer-agent-graphrag) - context retrieval architecture
+- Gloria Mark, UC Irvine - 23-minute context switch research
+
+---
+
 ## [4.1.0] - 2026-01-21
 
 ### Added - CLI, Config Files, and Distribution

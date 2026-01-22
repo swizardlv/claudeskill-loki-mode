@@ -15,7 +15,7 @@ claude --dangerously-skip-permissions
 ## Project Structure
 
 ```
-SKILL.md                    # Slim core skill (~120 lines) - progressive disclosure
+SKILL.md                    # Slim core skill (~190 lines) - progressive disclosure
 skills/                     # On-demand skill modules (v3.0 architecture)
   00-index.md               # Module selection rules and routing
   model-selection.md        # Task tool, parallelization, thinking modes
@@ -27,6 +27,7 @@ skills/                     # On-demand skill modules (v3.0 architecture)
   artifacts.md              # Generation, code transformation
   patterns-advanced.md      # OptiMind, k8s-valkey, Constitutional AI
   parallel-workflows.md     # Git worktrees, parallel streams, auto-merge
+  github-integration.md     # GitHub issue import, PR creation, notifications
 references/                 # Detailed documentation (19 files)
   openai-patterns.md        # OpenAI Agents SDK: guardrails, tripwires, handoffs
   lab-research-patterns.md  # DeepMind + Anthropic: Constitutional AI, debate
@@ -87,9 +88,9 @@ Every iteration follows: **R**eason -> **A**ct -> **R**eflect -> **V**erify
 
 ### Version Numbering
 Follows semantic versioning: MAJOR.MINOR.PATCH
-- Current: v4.1.0
+- Current: v4.2.0
 - MAJOR bump for architecture changes (v4.0.0 = realtime dashboard)
-- MINOR bump for new features (v4.1.0 = CLI + config + distribution)
+- MINOR bump for new features (v4.2.0 = foundational principles)
 - PATCH bump for fixes
 
 ### Code Style

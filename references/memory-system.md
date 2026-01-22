@@ -4,6 +4,29 @@ Enhanced memory architecture based on 2025 research (MIRIX, A-Mem, MemGPT, AriGr
 
 ---
 
+## Core Insight: Memory Over Reasoning
+
+> *"Your Agent's Reasoning Is Fine - Its Memory Isn't"*
+> -- Cursor Scaling Blog, January 2026
+
+**The fundamental bottleneck in production AI systems is not reasoning capability but context retrieval.**
+
+Production incidents aren't slowed by inability to fix problems - they're slowed by fragmented context. An agent with perfect reasoning but poor memory will:
+- Re-discover the same patterns repeatedly
+- Miss relevant prior experiences
+- Fail to apply learned anti-patterns
+- Lose context across session boundaries
+
+An agent with good reasoning and excellent memory will:
+- Retrieve relevant patterns before acting
+- Avoid previously-encountered failures
+- Build on successful approaches
+- Maintain continuity across long-running operations
+
+**Implication for Loki Mode:** Invest heavily in memory architecture. The episodic-to-semantic consolidation pipeline, Zettelkasten linking, and CONTINUITY.md working memory are not optional optimizations - they are the core competitive advantage.
+
+---
+
 ## Memory Hierarchy Overview
 
 ```
