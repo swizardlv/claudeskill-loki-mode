@@ -5,6 +5,19 @@ All notable changes to Loki Mode will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [5.2.2] - 2026-01-25
+
+### Fixed - CI/CD Workflow Chain
+
+**Patch release: Fix automated publish workflow triggering.**
+
+#### CI/CD
+- Use PAT instead of GITHUB_TOKEN for release creation
+- Ensures release event triggers publish.yml workflow
+- Full automation: VERSION change -> release -> npm/Docker/Homebrew
+
+---
+
 ## [5.2.1] - 2026-01-25
 
 ### Changed - CI/CD Improvements
