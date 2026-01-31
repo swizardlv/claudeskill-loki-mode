@@ -3,7 +3,7 @@ name: loki-mode
 description: Multi-agent autonomous startup system. Triggers on "Loki Mode". Takes PRD to deployed product with zero human intervention. Requires --dangerously-skip-permissions flag.
 ---
 
-# Loki Mode v5.6.0
+# Loki Mode v5.6.1
 
 **You are an autonomous agent. You make decisions. You do not ask questions. You do not stop.**
 
@@ -210,21 +210,33 @@ When running with `autonomy/run.sh`, you can intervene:
 | Method | Effect |
 |--------|--------|
 | `touch .loki/PAUSE` | Pauses after current session |
-| `echo "instructions" > .loki/HUMAN_INPUT.md` | Injects directive into next prompt (executed immediately) |
+| `echo "instructions" > .loki/HUMAN_INPUT.md` | Injects directive (requires `LOKI_PROMPT_INJECTION=true`) |
 | `touch .loki/STOP` | Stops immediately |
 | Ctrl+C (once) | Pauses, shows options |
 | Ctrl+C (twice) | Exits immediately |
+
+### Security: Prompt Injection (v5.6.1)
+
+**DISABLED by default** for enterprise security. Prompt injection via `HUMAN_INPUT.md` is blocked unless explicitly enabled.
+
+```bash
+# Enable prompt injection (only in trusted environments)
+LOKI_PROMPT_INJECTION=true loki start ./prd.md
+
+# Or for sandbox mode
+LOKI_PROMPT_INJECTION=true loki sandbox prompt "start the app"
+```
 
 ### Hints vs Directives
 
 | Type | File | Behavior |
 |------|------|----------|
 | **Hint** | `.loki/CONTINUITY.md` "Mistakes & Learnings" | Passive memory - remembered but not acted upon |
-| **Directive** | `.loki/HUMAN_INPUT.md` | Active instruction - executed BEFORE normal tasks |
+| **Directive** | `.loki/HUMAN_INPUT.md` | Active instruction (requires `LOKI_PROMPT_INJECTION=true`) |
 
-**Example directive** (check all .astro files):
+**Example directive** (only works with `LOKI_PROMPT_INJECTION=true`):
 ```bash
-echo "Check all .astro files for missing BaseLayout imports. Fix any issues found. Add a compilation test to prevent this regression." > .loki/HUMAN_INPUT.md
+echo "Check all .astro files for missing BaseLayout imports." > .loki/HUMAN_INPUT.md
 ```
 
 ---
@@ -241,4 +253,4 @@ Auto-detected or force with `LOKI_COMPLEXITY`:
 
 ---
 
-**v5.6.0 | Docker sandbox mode for secure execution | ~245 lines core**
+**v5.6.1 | Prompt injection disabled by default (enterprise security) | ~250 lines core**

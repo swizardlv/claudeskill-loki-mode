@@ -42,6 +42,8 @@ const VALID_PROVIDERS = ['claude', 'codex', 'gemini'];
 const MAX_BODY_SIZE = 1024 * 1024; // 1MB limit
 const MAX_LOG_LINES = 1000;
 const LOKI_DIR = path.join(PROJECT_DIR, '.loki');
+// Prompt injection disabled by default for enterprise security
+const PROMPT_INJECTION_ENABLED = process.env.LOKI_PROMPT_INJECTION === 'true';
 
 // Parse CLI args
 const args = process.argv.slice(2);
@@ -166,8 +168,10 @@ class ProcessManager {
 
     // Validate PRD path (security: prevent path traversal)
     if (prd) {
-      const normalizedPrd = path.normalize(prd);
-      if (normalizedPrd.includes('..') || path.isAbsolute(normalizedPrd) && !normalizedPrd.startsWith(PROJECT_DIR)) {
+      const resolvedPrd = path.resolve(PROJECT_DIR, prd);
+      const resolvedProjectDir = path.resolve(PROJECT_DIR);
+      // Ensure resolved path is within project directory
+      if (!resolvedPrd.startsWith(resolvedProjectDir + path.sep) && resolvedPrd !== resolvedProjectDir) {
         throw new Error('Invalid PRD path: path traversal not allowed');
       }
     }
@@ -380,6 +384,11 @@ class ProcessManager {
   }
 
   async injectInput(input) {
+    // Security: Prompt injection disabled by default for enterprise security
+    if (!PROMPT_INJECTION_ENABLED) {
+      throw new Error('Prompt injection is disabled for security. Set LOKI_PROMPT_INJECTION=true to enable (only in trusted environments).');
+    }
+
     // Validate input
     if (typeof input !== 'string' || input.length === 0) {
       throw new Error('Input must be a non-empty string');
@@ -422,9 +431,10 @@ async function handleRequest(req, res) {
   const pathname = url.pathname;
 
   // CORS headers - restrict to localhost for security
+  // Use regex to match exact localhost origins with optional port
   const origin = req.headers.origin || '';
-  const allowedOrigins = ['http://localhost', 'http://127.0.0.1'];
-  const isAllowed = allowedOrigins.some(allowed => origin.startsWith(allowed));
+  const localhostPattern = /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/;
+  const isAllowed = localhostPattern.test(origin);
   res.setHeader('Access-Control-Allow-Origin', isAllowed ? origin : 'http://localhost');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');

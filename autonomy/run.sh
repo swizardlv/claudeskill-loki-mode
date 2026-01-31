@@ -1,4 +1,8 @@
 #!/bin/bash
+# shellcheck disable=SC2034  # Many variables are used by sourced scripts
+# shellcheck disable=SC2155  # Declare and assign separately (acceptable in this codebase)
+# shellcheck disable=SC2329  # Functions may be invoked indirectly or via dynamic dispatch
+# shellcheck disable=SC2086  # Word splitting is intentional in some contexts
 #===============================================================================
 # Loki Mode - Autonomous Runner
 # Single script that handles prerequisites, setup, and autonomous execution
@@ -106,6 +110,10 @@
 #   STOP file:           touch .loki/STOP - stops immediately
 #   Ctrl+C (once):       Pauses execution, shows options
 #   Ctrl+C (twice):      Exits immediately
+#
+# Security (Enterprise):
+#   LOKI_PROMPT_INJECTION - Enable HUMAN_INPUT.md processing (default: false)
+#                           Set to "true" only in trusted environments
 #===============================================================================
 
 set -uo pipefail
@@ -513,7 +521,9 @@ if [ "$BASH_VERSION_MAJOR" -ge 4 ] 2>/dev/null; then
     declare -A WORKTREE_PATHS
 else
     # Fallback: parallel mode will check and warn
+    # shellcheck disable=SC2178
     WORKTREE_PIDS=""
+    # shellcheck disable=SC2178
     WORKTREE_PATHS=""
 fi
 
@@ -939,6 +949,7 @@ import_github_issues() {
         # Append to pending.json with temp file cleanup on error
         local temp_file
         temp_file=$(mktemp)
+        # shellcheck disable=SC2064
         trap "rm -f '$temp_file'" RETURN
         if jq ".tasks += [$task_json]" "$pending_file" > "$temp_file" && mv "$temp_file" "$pending_file"; then
             log_info "Imported issue #$number: $title"
@@ -1320,8 +1331,8 @@ remove_worktree() {
         fi
     }
 
-    unset WORKTREE_PATHS[$stream_name]
-    unset WORKTREE_PIDS[$stream_name]
+    unset "WORKTREE_PATHS[$stream_name]"
+    unset "WORKTREE_PIDS[$stream_name]"
 
     log_info "Removed worktree: $stream_name"
 }
@@ -1642,7 +1653,7 @@ run_parallel_orchestrator() {
             local pid="${WORKTREE_PIDS[$stream]}"
             if ! kill -0 "$pid" 2>/dev/null; then
                 log_warn "Session ended: $stream"
-                unset WORKTREE_PIDS[$stream]
+                unset "WORKTREE_PIDS[$stream]"
             fi
         done
 
@@ -4076,19 +4087,43 @@ check_human_intervention() {
         return 1
     fi
 
-    # Check for HUMAN_INPUT.md
-    if [ -f "$loki_dir/HUMAN_INPUT.md" ]; then
-        local human_input=$(cat "$loki_dir/HUMAN_INPUT.md")
-        if [ -n "$human_input" ]; then
-            log_info "Human input detected:"
-            echo "$human_input"
-            echo ""
-            # Move to processed
-            mv "$loki_dir/HUMAN_INPUT.md" "$loki_dir/logs/human-input-$(date +%Y%m%d-%H%M%S).md"
-            # Inject into next prompt
-            export LOKI_HUMAN_INPUT="$human_input"
-            return 0
+    # Check for HUMAN_INPUT.md (prompt injection)
+    # Security: Check it's a regular file (not symlink) to prevent symlink attacks
+    if [ -f "$loki_dir/HUMAN_INPUT.md" ] && [ ! -L "$loki_dir/HUMAN_INPUT.md" ]; then
+        # Security: Prompt injection disabled by default for enterprise security
+        if [ "${LOKI_PROMPT_INJECTION:-false}" != "true" ]; then
+            log_warn "HUMAN_INPUT.md detected but prompt injection is DISABLED"
+            log_warn "To enable, set LOKI_PROMPT_INJECTION=true (only in trusted environments)"
+            # Move to rejected instead of processed
+            mkdir -p "$loki_dir/logs" 2>/dev/null
+            mv "$loki_dir/HUMAN_INPUT.md" "$loki_dir/logs/human-input-REJECTED-$(date +%Y%m%d-%H%M%S).md" 2>/dev/null || rm -f "$loki_dir/HUMAN_INPUT.md"
+        else
+            # Security: Check file size (1MB limit)
+            local file_size
+            file_size=$(stat -f%z "$loki_dir/HUMAN_INPUT.md" 2>/dev/null || stat -c%s "$loki_dir/HUMAN_INPUT.md" 2>/dev/null || echo "0")
+            if [ "$file_size" -gt 1048576 ]; then
+                log_warn "HUMAN_INPUT.md exceeds 1MB size limit, rejecting"
+                mkdir -p "$loki_dir/logs" 2>/dev/null
+                mv "$loki_dir/HUMAN_INPUT.md" "$loki_dir/logs/human-input-REJECTED-TOOLARGE-$(date +%Y%m%d-%H%M%S).md" 2>/dev/null || rm -f "$loki_dir/HUMAN_INPUT.md"
+            else
+                local human_input=$(cat "$loki_dir/HUMAN_INPUT.md")
+                if [ -n "$human_input" ]; then
+                    log_info "Human input detected:"
+                    echo "$human_input"
+                    echo ""
+                    # Move to processed
+                    mkdir -p "$loki_dir/logs" 2>/dev/null
+                    mv "$loki_dir/HUMAN_INPUT.md" "$loki_dir/logs/human-input-$(date +%Y%m%d-%H%M%S).md"
+                    # Inject into next prompt
+                    export LOKI_HUMAN_INPUT="$human_input"
+                    return 0
+                fi
+            fi
         fi
+    elif [ -L "$loki_dir/HUMAN_INPUT.md" ]; then
+        # Security: Reject symlinks
+        log_warn "HUMAN_INPUT.md is a symlink - rejected for security"
+        rm -f "$loki_dir/HUMAN_INPUT.md"
     fi
 
     # Check for STOP file (immediate stop)
