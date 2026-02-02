@@ -6,6 +6,7 @@ Provides REST API and WebSocket endpoints for dashboard functionality.
 
 import asyncio
 import json
+import logging
 import os
 from contextlib import asynccontextmanager
 from datetime import datetime
@@ -36,6 +37,9 @@ from .models import (
     TaskPriority,
     TaskStatus,
 )
+
+# Set up logging
+logger = logging.getLogger(__name__)
 
 
 # Pydantic schemas for API
@@ -155,7 +159,8 @@ class ConnectionManager:
         for connection in self.active_connections:
             try:
                 await connection.send_json(message)
-            except Exception:
+            except Exception as e:
+                logger.debug(f"WebSocket send failed, client disconnected: {e}")
                 disconnected.append(connection)
         # Clean up disconnected clients
         for conn in disconnected:
@@ -165,7 +170,8 @@ class ConnectionManager:
         """Send a message to a specific client."""
         try:
             await websocket.send_json(message)
-        except Exception:
+        except Exception as e:
+            logger.debug(f"WebSocket personal send failed: {e}")
             self.disconnect(websocket)
 
 
@@ -232,7 +238,8 @@ async def get_status(db: AsyncSession = Depends(get_db)) -> StatusResponse:
         pending_tasks = len(result.scalars().all())
 
         db_connected = True
-    except Exception:
+    except Exception as e:
+        logger.warning(f"Status check database error: {e}")
         active_sessions = 0
         running_agents = 0
         pending_tasks = 0
@@ -460,6 +467,20 @@ async def create_task(
     if not result.scalar_one_or_none():
         raise HTTPException(status_code=404, detail="Project not found")
 
+    # Validate parent task if specified
+    if task.parent_task_id:
+        result = await db.execute(
+            select(Task).where(
+                Task.id == task.parent_task_id,
+                Task.project_id == task.project_id
+            )
+        )
+        if not result.scalar_one_or_none():
+            raise HTTPException(
+                status_code=400,
+                detail="Parent task not found or belongs to different project"
+            )
+
     db_task = Task(
         project_id=task.project_id,
         title=task.title,
@@ -644,15 +665,16 @@ async def websocket_endpoint(websocket: WebSocket) -> None:
                             "type": "subscribed",
                             "data": message.get("data", {}),
                         })
-                except json.JSONDecodeError:
-                    pass
+                except json.JSONDecodeError as e:
+                    logger.debug(f"WebSocket received invalid JSON: {e}")
             except asyncio.TimeoutError:
                 # Send keepalive ping
                 await manager.send_personal(websocket, {"type": "ping"})
 
     except WebSocketDisconnect:
         manager.disconnect(websocket)
-    except Exception:
+    except Exception as e:
+        logger.error(f"WebSocket error: {e}")
         manager.disconnect(websocket)
 
 

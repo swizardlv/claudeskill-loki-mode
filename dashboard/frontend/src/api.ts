@@ -28,7 +28,6 @@ interface BackendTask {
 interface BackendProject {
   id: number;
   name: string;
-  path: string | null;
   description: string | null;
   prd_path: string | null;
   status: string;
@@ -120,7 +119,7 @@ export const projectsApi = {
     return apiFetch<BackendProject>(`/projects/${id}`);
   },
 
-  create: async (data: { name: string; path?: string; description?: string }): Promise<BackendProject> => {
+  create: async (data: { name: string; prd_path?: string; description?: string }): Promise<BackendProject> => {
     return apiFetch<BackendProject>('/projects', {
       method: 'POST',
       body: JSON.stringify(data),
@@ -191,9 +190,16 @@ export class WebSocketClient {
   private reconnectAttempts = 0;
   private maxReconnectAttempts = 5;
   private reconnectDelay = 1000;
+  private reconnectTimeout: ReturnType<typeof setTimeout> | null = null;
   private listeners: Map<string, Set<(data: unknown) => void>> = new Map();
 
   connect(): void {
+    // Clear any pending reconnect
+    if (this.reconnectTimeout) {
+      clearTimeout(this.reconnectTimeout);
+      this.reconnectTimeout = null;
+    }
+
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
     const wsUrl = `${protocol}//${window.location.host}/ws`;
 
@@ -240,7 +246,7 @@ export class WebSocketClient {
       this.reconnectAttempts++;
       const delay = this.reconnectDelay * Math.pow(2, this.reconnectAttempts - 1);
       console.log(`Reconnecting in ${delay}ms (attempt ${this.reconnectAttempts})`);
-      setTimeout(() => this.connect(), delay);
+      this.reconnectTimeout = setTimeout(() => this.connect(), delay);
     }
   }
 
@@ -257,6 +263,11 @@ export class WebSocketClient {
   }
 
   disconnect(): void {
+    // Clear reconnect timeout to prevent memory leaks
+    if (this.reconnectTimeout) {
+      clearTimeout(this.reconnectTimeout);
+      this.reconnectTimeout = null;
+    }
     if (this.ws) {
       this.ws.close();
       this.ws = null;

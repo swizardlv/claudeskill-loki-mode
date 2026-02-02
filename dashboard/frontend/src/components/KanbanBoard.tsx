@@ -24,6 +24,15 @@ interface Project {
   name: string;
 }
 
+// Helper to safely parse task ID (handles temp-* IDs for unsaved tasks)
+const parseTaskId = (id: string): number | null => {
+  if (id.startsWith('temp-')) {
+    return null; // Unsaved task
+  }
+  const numId = parseInt(id, 10);
+  return isNaN(numId) ? null : numId;
+};
+
 export const KanbanBoard: React.FC = () => {
   // State
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -113,31 +122,27 @@ export const KanbanBoard: React.FC = () => {
   }, [currentProjectId, fetchTasks]);
 
   // WebSocket connection for real-time updates
+  // Backend sends underscore format (task_created) with partial data
+  // We refetch to get the full task object
   useEffect(() => {
     wsClient.connect();
 
-    const unsubTaskCreated = wsClient.on('task:created', (data) => {
-      const taskData = data as { task: Task };
-      setTasks((prev) => [...prev, taskData.task]);
+    // Refetch tasks on any task change to ensure consistency
+    const unsubTaskCreated = wsClient.on('task_created', () => {
+      fetchTasks();
     });
 
-    const unsubTaskUpdated = wsClient.on('task:updated', (data) => {
-      const taskData = data as { task: Task };
-      setTasks((prev) =>
-        prev.map((t) => (t.id === taskData.task.id ? taskData.task : t))
-      );
+    const unsubTaskUpdated = wsClient.on('task_updated', () => {
+      fetchTasks();
     });
 
-    const unsubTaskDeleted = wsClient.on('task:deleted', (data) => {
-      const taskData = data as { task_id: string };
-      setTasks((prev) => prev.filter((t) => t.id !== taskData.task_id));
+    const unsubTaskDeleted = wsClient.on('task_deleted', (data) => {
+      const taskData = data as { id: number };
+      setTasks((prev) => prev.filter((t) => t.id !== String(taskData.id)));
     });
 
-    const unsubTaskMoved = wsClient.on('task:moved', (data) => {
-      const taskData = data as { task: Task };
-      setTasks((prev) =>
-        prev.map((t) => (t.id === taskData.task.id ? taskData.task : t))
-      );
+    const unsubTaskMoved = wsClient.on('task_moved', () => {
+      fetchTasks();
     });
 
     return () => {
@@ -215,12 +220,13 @@ export const KanbanBoard: React.FC = () => {
       }
     }
 
-    // Only make API call if status actually changed
+    // Only make API call if status actually changed and task is saved
     const originalTask = tasks.find((t) => t.id === taskId);
-    if (originalTask && originalTask.status !== newStatus) {
+    const numericId = parseTaskId(taskId);
+    if (originalTask && originalTask.status !== newStatus && numericId !== null) {
       try {
         const position = getTasksByStatus(newStatus).length;
-        await tasksApi.move(parseInt(taskId), newStatus, position);
+        await tasksApi.move(numericId, newStatus, position);
       } catch (err) {
         // Revert on error
         if (originalTask) {
@@ -238,6 +244,10 @@ export const KanbanBoard: React.FC = () => {
   const handleMoveTask = async (taskId: string, direction: 'left' | 'right') => {
     const task = tasks.find((t) => t.id === taskId);
     if (!task) return;
+
+    // Don't allow moving unsaved tasks
+    const numericId = parseTaskId(taskId);
+    if (numericId === null) return;
 
     const currentIndex = columns.indexOf(task.status);
     const newIndex = direction === 'left' ? currentIndex - 1 : currentIndex + 1;
@@ -259,7 +269,7 @@ export const KanbanBoard: React.FC = () => {
     // API call
     try {
       const position = getTasksByStatus(newStatus).length;
-      await tasksApi.move(parseInt(taskId), newStatus, position);
+      await tasksApi.move(numericId, newStatus, position);
     } catch (err) {
       // Revert on error
       setTasks((prev) =>
@@ -305,7 +315,12 @@ export const KanbanBoard: React.FC = () => {
         const createdTask = await tasksApi.create(updatedTask, currentProjectId);
         setTasks((prevTasks) => [...prevTasks, createdTask]);
       } else {
-        const savedTask = await tasksApi.update(parseInt(updatedTask.id), updatedTask);
+        const numericId = parseTaskId(updatedTask.id);
+        if (numericId === null) {
+          setError('Cannot update unsaved task');
+          return;
+        }
+        const savedTask = await tasksApi.update(numericId, updatedTask);
         setTasks((prevTasks) =>
           prevTasks.map((task) => (task.id === updatedTask.id ? savedTask : task))
         );
@@ -320,8 +335,17 @@ export const KanbanBoard: React.FC = () => {
   };
 
   const handleDeleteTask = async (taskId: string) => {
+    const numericId = parseTaskId(taskId);
+    if (numericId === null) {
+      // Just remove from local state for unsaved tasks
+      setTasks((prevTasks) => prevTasks.filter((task) => task.id !== taskId));
+      setIsModalOpen(false);
+      setSelectedTask(null);
+      return;
+    }
+
     try {
-      await tasksApi.delete(parseInt(taskId));
+      await tasksApi.delete(numericId);
       setTasks((prevTasks) => prevTasks.filter((task) => task.id !== taskId));
       setIsModalOpen(false);
       setSelectedTask(null);
