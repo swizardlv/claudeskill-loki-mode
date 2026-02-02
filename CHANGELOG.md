@@ -5,8 +5,9 @@ All notable changes to Loki Mode will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## Executive Summary (v5.6 - v5.13)
+## Executive Summary (v5.6 - v5.14)
 
+- **Voice Input Support** - Dictate PRDs using macOS Dictation, Whisper API, or local Whisper
 - **Multi-Channel Notifications** - Real-time Slack, Discord, and webhook alerts for session events
 - **Enterprise Authentication** - Optional token-based API security with SHA256 hashing
 - **Audit Logging** - Automatic JSONL audit trail with rotation for compliance
@@ -16,6 +17,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **VS Code Extension** - Integrated chat, logs, and session control in your IDE
 - **Docker Sandbox** - Secure isolated execution with seccomp profiles
 - **Docker Deployment** - Production-ready containerization with health checks
+
+---
+
+## [5.14.0] - 2026-02-02
+
+### Added - Voice Input Support
+
+**Dictate PRDs using voice instead of typing. Supports multiple transcription backends.**
+
+#### CLI Commands
+- `loki voice status` - Check voice input capabilities
+- `loki voice listen` - Listen and transcribe voice input
+- `loki voice dictate [FILE]` - Guided PRD dictation
+- `loki voice speak MESSAGE` - Text-to-speech output
+- `loki voice start [FILE]` - Dictate PRD and start Loki Mode immediately
+
+#### Supported Backends
+- **macOS Dictation** - Native system dictation (System Settings > Keyboard > Dictation)
+- **Whisper API** - OpenAI Whisper cloud transcription (requires OPENAI_API_KEY)
+- **Local Whisper** - Offline transcription (pip install openai-whisper)
+
+#### Platform Support
+- macOS: Full support (Dictation, Whisper API, local Whisper, TTS via `say`)
+- Linux: Whisper API and local Whisper (TTS via espeak/festival)
+- Windows: Not yet supported
+
+#### Features
+- Guided PRD creation with voice prompts
+- Text-to-speech feedback during dictation
+- Secure temp file handling with automatic cleanup
+- POSIX-compatible (works with bash 3.2 on macOS)
+
+#### New Files
+- `autonomy/voice.sh` - Voice input module
 
 ---
 

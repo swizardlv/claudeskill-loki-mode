@@ -137,6 +137,7 @@ show_help() {
     echo "  api [cmd]        HTTP API server (start|stop|status)"
     echo "  sandbox [cmd]    Docker sandbox (start|stop|status|logs|shell|build)"
     echo "  notify [cmd]     Send notifications (test|slack|discord|webhook|status)"
+    echo "  voice [cmd]      Voice input for PRD creation (status|listen|dictate|speak|start)"
     echo "  import           Import GitHub issues as tasks"
     echo "  config [cmd]     Manage configuration (show|init|edit|path)"
     echo "  memory [cmd]     Cross-project learnings (list|show|search|stats)"
@@ -2486,6 +2487,9 @@ main() {
         enterprise)
             cmd_enterprise "$@"
             ;;
+        voice)
+            cmd_voice "$@"
+            ;;
         version|--version|-v)
             cmd_version
             ;;
@@ -3360,6 +3364,99 @@ for check, passed in checks.items():
         *)
             echo -e "${RED}Unknown projects command: $subcommand${NC}"
             echo "Run 'loki projects help' for usage."
+            exit 1
+            ;;
+    esac
+}
+
+# Voice input commands
+cmd_voice() {
+    local subcommand="${1:-status}"
+    local VOICE_SCRIPT="$SKILL_DIR/autonomy/voice.sh"
+
+    # Check fallback locations for voice script
+    if [ ! -f "$VOICE_SCRIPT" ]; then
+        # Try relative to loki CLI location
+        local loki_dir
+        loki_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+        VOICE_SCRIPT="$loki_dir/voice.sh"
+    fi
+
+    if [ ! -f "$VOICE_SCRIPT" ]; then
+        echo -e "${RED}Error: Voice module not found${NC}"
+        echo "Expected at: $SKILL_DIR/autonomy/voice.sh"
+        echo ""
+        echo "Voice input requires the voice.sh module."
+        echo "This feature may not be available in all installations."
+        exit 1
+    fi
+
+    case "$subcommand" in
+        status)
+            "$VOICE_SCRIPT" status
+            ;;
+        listen)
+            echo -e "${BOLD}Starting voice input...${NC}"
+            local text
+            text=$("$VOICE_SCRIPT" listen)
+            if [ -n "$text" ]; then
+                echo ""
+                echo -e "${GREEN}Transcribed text:${NC}"
+                echo "$text"
+            fi
+            ;;
+        dictate)
+            local output="${2:-prd-voice.md}"
+            echo -e "${BOLD}Starting guided PRD dictation...${NC}"
+            echo ""
+            "$VOICE_SCRIPT" dictate "$output"
+            if [ -f "$output" ]; then
+                echo ""
+                echo -e "${GREEN}PRD created: $output${NC}"
+                echo ""
+                echo "Start Loki Mode with:"
+                echo "  loki start $output"
+            fi
+            ;;
+        speak)
+            shift
+            if [ $# -eq 0 ]; then
+                echo -e "${RED}Usage: loki voice speak MESSAGE${NC}"
+                exit 1
+            fi
+            "$VOICE_SCRIPT" speak "$*"
+            ;;
+        start)
+            # Dictate PRD and start Loki Mode
+            local prd_file="${2:-prd-voice-$(date +%Y%m%d%H%M%S).md}"
+            echo -e "${BOLD}Voice-activated PRD creation...${NC}"
+            "$VOICE_SCRIPT" dictate "$prd_file"
+            if [ -f "$prd_file" ]; then
+                echo ""
+                echo -e "${GREEN}PRD created. Starting Loki Mode...${NC}"
+                cmd_start "$prd_file"
+            fi
+            ;;
+        --help|-h|help)
+            echo -e "${BOLD}loki voice${NC} - Voice input for PRD creation"
+            echo ""
+            echo "Usage: loki voice <command> [options]"
+            echo ""
+            echo "Commands:"
+            echo "  status           Check voice input capabilities"
+            echo "  listen           Listen and transcribe voice input"
+            echo "  dictate [FILE]   Guided PRD dictation (default: prd-voice.md)"
+            echo "  speak MESSAGE    Text-to-speech output"
+            echo "  start [FILE]     Dictate PRD and start Loki Mode immediately"
+            echo ""
+            echo "Requirements:"
+            echo "  macOS: Enable Dictation in System Settings > Keyboard"
+            echo "  Or: Set OPENAI_API_KEY for Whisper API transcription"
+            echo "  Or: pip install openai-whisper for local transcription"
+            ;;
+        *)
+            echo -e "${RED}Unknown voice command: $subcommand${NC}"
+            echo "Run 'loki voice help' for usage."
             exit 1
             ;;
     esac

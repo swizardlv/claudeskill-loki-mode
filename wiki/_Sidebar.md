@@ -23,12 +23,11 @@
 ### Enterprise
 - [[Enterprise Features]]
 - [[Sandbox Mode]]
-- [[Authentication]]
+- [[Security]]
 - [[Audit Logging]]
 
 ### Architecture
 - [[Architecture]]
-- [[State Machines]]
 
 ### Resources
 - [[Troubleshooting]]

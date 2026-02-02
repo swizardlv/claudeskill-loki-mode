@@ -224,10 +224,8 @@ loki api [SUBCOMMAND] [OPTIONS]
 **Options:**
 | Option | Description |
 |--------|-------------|
-| `--port PORT` | Server port (default: 8420) |
+| `--port PORT` | Server port (default: 9898) |
 | `--host HOST` | Server host (default: localhost) |
-| `--no-auth` | Disable authentication |
-| `--no-cors` | Disable CORS |
 
 **Subcommands (api):**
 | Command | Description |
@@ -279,6 +277,34 @@ loki issue 123 --start
 loki issue 123 --dry-run
 ```
 
+### `loki issue parse`
+
+Parse an existing issue without starting a session.
+
+```bash
+loki issue parse [URL|NUMBER] [OPTIONS]
+```
+
+**Options:**
+| Option | Description |
+|--------|-------------|
+| `--repo OWNER/REPO` | Specify repository |
+| `--output FILE` | Save parsed PRD to file |
+
+**Examples:**
+```bash
+loki issue parse 123
+loki issue parse 123 --output parsed-prd.md
+```
+
+### `loki issue view`
+
+View issue details in terminal.
+
+```bash
+loki issue view [URL|NUMBER]
+```
+
 ### `loki import`
 
 Import GitHub issues as tasks.
@@ -307,11 +333,15 @@ loki memory [SUBCOMMAND] [OPTIONS]
 | `show {patterns\|mistakes\|successes}` | Display specific type |
 | `search QUERY` | Search learnings |
 | `stats` | Show statistics |
+| `export [FILE]` | Export learnings to JSON file |
+| `clear {patterns\|mistakes\|successes\|all}` | Clear learnings |
+| `dedupe` | Remove duplicate entries |
 
 **Options:**
 | Option | Description |
 |--------|-------------|
 | `--limit N` | Limit results |
+| `--format {text\|json}` | Output format |
 
 **Examples:**
 ```bash
@@ -319,6 +349,9 @@ loki memory list
 loki memory show patterns --limit 10
 loki memory search "authentication"
 loki memory stats
+loki memory export ./learnings-backup.json
+loki memory clear mistakes
+loki memory dedupe
 ```
 
 ---
@@ -340,6 +373,8 @@ loki projects [SUBCOMMAND]
 | `list` | List registered projects |
 | `show PROJECT` | Show project details |
 | `register PROJECT` | Register new project |
+| `add PROJECT` | Alias for register |
+| `remove PROJECT` | Unregister a project |
 | `discover` | Auto-discover projects |
 | `sync` | Sync project data |
 | `health` | Check project health |
@@ -349,6 +384,8 @@ loki projects [SUBCOMMAND]
 loki projects list
 loki projects discover
 loki projects register ~/projects/my-app
+loki projects add ~/projects/another-app
+loki projects remove my-app
 loki projects health
 ```
 
@@ -431,6 +468,7 @@ loki enterprise [SUBCOMMAND]
 | `token generate NAME [OPTIONS]` | Create API token |
 | `token list [--all]` | List tokens |
 | `token revoke {ID\|NAME}` | Revoke token |
+| `token delete {ID\|NAME}` | Delete token (alias for revoke) |
 | `audit summary` | Audit summary |
 | `audit tail` | Recent audit entries |
 
